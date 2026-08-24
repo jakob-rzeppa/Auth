@@ -6,7 +6,9 @@ use crate::{
 };
 
 mod authorize;
+mod error;
 mod page;
+mod request;
 
 pub fn router() -> axum::Router<AppState> {
     axum::Router::new()
