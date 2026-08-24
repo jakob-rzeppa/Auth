@@ -4,7 +4,13 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-axum = "0.8.9"
+askama = "0.16.0"
+axum = { version = "0.8.9", features = ["macros"] }
+base64 = "0.22.1"
 fnmock = "0.1.0"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+serde_urlencoded = "0.7.1"
 thiserror = "2.0.19"
 tokio = { version = "1.53.1", features = ["full"] }
+uuid = "1.24.1"
