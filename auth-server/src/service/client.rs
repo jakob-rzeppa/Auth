@@ -1,21 +1,18 @@
 use crate::domain::client::Client;
 
-pub fn validate_authentication_for_client(
-    client: &Client,
-    request_uri: &str,
-    scopes: &[&str],
-) -> Result<(), String> {
-    // Validate the request URI
-    if !client.redirect_uris.contains(&request_uri.to_string()) {
-        return Err("Invalid redirect URI".to_string());
+pub fn validate_redirect_uri(client: &Client, redirect_uri: &str) -> bool {
+    if !client.redirect_uris.contains(&redirect_uri.to_string()) {
+        false
+    } else {
+        true
     }
+}
 
-    // Validate the requested scopes
-    for scope in scopes {
-        if !client.scopes.contains(&scope.to_string()) {
-            return Err(format!("Invalid scope: {}", scope));
+pub fn validate_scope(client: &Client, scope: &[String]) -> bool {
+    for scope_value in scope {
+        if !client.scopes.contains(&scope_value.to_string()) {
+            return false;
         }
     }
-
-    Ok(())
+    true
 }

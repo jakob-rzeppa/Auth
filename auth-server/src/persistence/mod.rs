@@ -1,4 +1,6 @@
 pub mod client;
 pub mod user;
 
-pub enum PersistanceError {}
+pub enum PersistanceError {
+    DatabaseError,
+}
