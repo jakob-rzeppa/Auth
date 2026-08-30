@@ -1,23 +1,21 @@
-use axum::extract::State;
-
 use crate::{
-    app_state::AppState,
     authorize::{
         error::{
             AuthorizeError,
             fatal::{FatalAuthorizeError, FatalAuthorizeErrorKind},
+            recoverable::RecoverableAuthorizeError,
         },
         request::AuthorizeRequest,
     },
     persistence::{PersistanceError, client::get_client_by_id, user::get_user_by_email},
-    service::client::{validate_redirect_uri, validate_scope},
+    service::{
+        client::{validate_redirect_uri, validate_scope},
+        user::{UserHandlerError, check_password_authentication},
+    },
 };
 
 #[axum::debug_handler]
-pub async fn authorize_endpoint(
-    State(app_state): State<AppState>,
-    request: AuthorizeRequest,
-) -> Result<(), AuthorizeError> {
+pub async fn authorize_endpoint(request: AuthorizeRequest) -> Result<(), AuthorizeError> {
     let AuthorizeRequest {
         response_type,
         client_id,
@@ -65,7 +63,34 @@ pub async fn authorize_endpoint(
     }
 
     // ==== Authenticate User ====
-    let user = get_user_by_email(&user_email);
+    let user = get_user_by_email(&user_email).map_err(|e| match e {
+        PersistanceError::DatabaseError { .. } => AuthorizeError::Fatal(FatalAuthorizeError::new(
+            FatalAuthorizeErrorKind::ServerError,
+        )),
+    })?;
+    let Some(user) = user else {
+        return Err(AuthorizeError::Recoverable(RecoverableAuthorizeError {
+            kind: crate::authorize::error::recoverable::RecoverableAuthorizeErrorKind::InvalidCredentials,
+            client_id: client_id.to_string(),
+            redirect_uri,
+            scope: scope.join(" "),
+            state,
+            user_name: user_email,
+        }));
+    };
+
+    check_password_authentication(&user, &user_password).map_err(|e| match e {
+        UserHandlerError::InvalidPassword => {
+            AuthorizeError::Recoverable(RecoverableAuthorizeError {
+                kind: crate::authorize::error::recoverable::RecoverableAuthorizeErrorKind::InvalidCredentials,
+                client_id: client_id.to_string(),
+                redirect_uri,
+                scope: scope.join(" "),
+                state,
+                user_name: user_email,
+            })
+        }
+    })?;
 
     Ok(())
 }
