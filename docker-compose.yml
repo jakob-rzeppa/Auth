@@ -1,0 +1,2 @@
+include:
+  - identity-server/docker-compose.yml

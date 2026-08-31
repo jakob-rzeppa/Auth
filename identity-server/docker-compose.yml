@@ -1,0 +1,49 @@
+services:
+  identity-server-db:
+    image: postgres:17-alpine
+    container_name: identity-server-db
+    env_file:
+      - path: .env
+        required: true
+      - path: .env.local
+        required: false
+    volumes:
+      - identity-server-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  identity-server-migrate:
+    build:
+      context: .
+      target: migrator
+    env_file:
+      - path: .env
+        required: true
+      - path: .env.local
+        required: false
+    command: ["migrate", "run"]
+    volumes:
+      - ./migrations:/app/migrations
+    depends_on:
+      identity-server-db:
+        condition: service_healthy
+
+  identity-server:
+    build:
+      context: .
+      target: runtime
+    container_name: identity-server
+    env_file:
+      - path: .env
+        required: true
+      - path: .env.local
+        required: false
+    depends_on:
+      identity-server-migrate:
+        condition: service_completed_successfully
+
+volumes:
+  identity-server-db-data:
