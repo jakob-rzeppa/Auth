@@ -7,6 +7,8 @@ services:
         required: true
       - path: .env.local
         required: false
+    ports:
+      - "127.0.0.1:5432:5432"
     volumes:
       - identity-server-db-data:/var/lib/postgresql/data
     healthcheck:
@@ -46,14 +48,6 @@ services:
     depends_on:
       identity-server-migrate:
         condition: service_completed_successfully
-    develop:
-      watch:
-        - action: rebuild
-          path: ./src
-        - action: rebuild
-          path: ./Cargo.toml
-        - action: rebuild
-          path: ./Cargo.lock
 
 volumes:
   identity-server-db-data:

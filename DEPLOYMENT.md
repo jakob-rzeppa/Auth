@@ -29,19 +29,20 @@ docker compose up --build
 
 This brings up, in order:
 
-1. `identity-server-db` — Postgres, dedicated to identity-server. Not reachable from the host, only from other containers.
+1. `identity-server-db` — Postgres, dedicated to identity-server. Published to the host on `127.0.0.1:5432` for local dev tooling; still reachable from other containers as `identity-server-db`.
 2. `identity-server-migrate` — runs `sqlx migrate run` once `identity-server-db` is healthy, then exits (exit code 0 on success).
 3. `identity-server` — builds and starts once migrations complete.
 
 ## Development
 
-To have `identity-server` automatically rebuild and restart when its Rust source changes, run:
+Rebuilding the Docker image on every change (`docker compose watch`) recompiles the whole Rust dependency tree in release mode on each save, which is slow. Instead, run the app natively against the Dockerized Postgres:
 
 ```sh
-docker compose watch
+docker compose up -d identity-server-db identity-server-migrate
+cd identity-server && ./dev.sh
 ```
 
-This only watches `identity-server/src`, `identity-server/Cargo.toml`, and `identity-server/Cargo.lock`. Changes to migrations, `.env`/`.env.local`, or the Dockerfile/compose files are **not** watched — after editing those, restart the stack manually (`docker compose up --build`).
+`dev.sh` requires `cargo-watch` (`cargo install cargo-watch`), reads `.env`/`.env.local` for Postgres credentials, and points `DATABASE_URL` at `localhost:5432` instead of the in-network `identity-server-db` hostname. It rebuilds and restarts on every source change, incrementally, in debug mode — much faster than a full container rebuild.
 
 ## Verifying
 
