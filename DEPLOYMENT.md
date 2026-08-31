@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Docker Compose v2.20+ (the root `docker-compose.yml` uses the `include:` directive, which needs this version or newer). Check with `docker compose version`.
+- Docker Compose v2.22+ (the root `docker-compose.yml` uses the `include:` directive, and `identity-server` uses `develop.watch`, both of which need this version or newer). Check with `docker compose version`.
 
 ## First-time setup
 
@@ -32,6 +32,16 @@ This brings up, in order:
 1. `identity-server-db` — Postgres, dedicated to identity-server. Not reachable from the host, only from other containers.
 2. `identity-server-migrate` — runs `sqlx migrate run` once `identity-server-db` is healthy, then exits (exit code 0 on success).
 3. `identity-server` — builds and starts once migrations complete.
+
+## Development
+
+To have `identity-server` automatically rebuild and restart when its Rust source changes, run:
+
+```sh
+docker compose watch
+```
+
+This only watches `identity-server/src`, `identity-server/Cargo.toml`, and `identity-server/Cargo.lock`. Changes to migrations, `.env`/`.env.local`, or the Dockerfile/compose files are **not** watched — after editing those, restart the stack manually (`docker compose up --build`).
 
 ## Verifying
 

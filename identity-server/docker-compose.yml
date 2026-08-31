@@ -44,6 +44,14 @@ services:
     depends_on:
       identity-server-migrate:
         condition: service_completed_successfully
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src
+        - action: rebuild
+          path: ./Cargo.toml
+        - action: rebuild
+          path: ./Cargo.lock
 
 volumes:
   identity-server-db-data:
