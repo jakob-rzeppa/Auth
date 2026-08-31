@@ -8,6 +8,7 @@ mod domain {
     pub mod user;
 }
 mod api;
+mod application;
 mod config;
 mod persistence;
 
