@@ -13,12 +13,12 @@ static DB_POOL: LazyLock<Pool<Postgres>> = LazyLock::new(|| {
 
 #[derive(Debug)]
 pub enum DatabaseError {
-    ConnectionError(sqlx::Error),
+    ConnectionError,
 }
 
 async fn get_connection() -> Result<PoolConnection<Postgres>, DatabaseError> {
-    DB_POOL
-        .acquire()
-        .await
-        .map_err(DatabaseError::ConnectionError)
+    DB_POOL.acquire().await.map_err(|e| {
+        eprintln!("Database connection error: {:?}", e);
+        DatabaseError::ConnectionError
+    })
 }

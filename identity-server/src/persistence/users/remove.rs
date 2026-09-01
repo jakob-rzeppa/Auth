@@ -5,10 +5,9 @@ pub enum RemoveUserError {
 }
 
 pub async fn remove_user(user: &User) -> Result<(), RemoveUserError> {
-    let mut conn = get_connection().await.map_err(|e| {
-        eprintln!("Could not get database connection: {:?}", e);
-        RemoveUserError::DatabaseError
-    })?;
+    let mut conn = get_connection()
+        .await
+        .map_err(|_| RemoveUserError::DatabaseError)?;
 
     sqlx::query("DELETE FROM users WHERE id = $1")
         .bind(user.id())

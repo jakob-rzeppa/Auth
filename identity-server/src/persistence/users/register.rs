@@ -8,10 +8,9 @@ pub enum RegisterUserError {
 const UNIQUE_VIOLATION: &str = "23505";
 
 pub async fn register_user(user: &User) -> Result<(), RegisterUserError> {
-    let mut conn = get_connection().await.map_err(|e| {
-        eprintln!("Could not get database connection: {:?}", e);
-        RegisterUserError::DatabaseError
-    })?;
+    let mut conn = get_connection()
+        .await
+        .map_err(|_| RegisterUserError::DatabaseError)?;
 
     sqlx::query("INSERT INTO users (id, email) VALUES ($1, $2)")
         .bind(user.id())

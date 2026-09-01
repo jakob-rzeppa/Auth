@@ -11,10 +11,9 @@ const UNIQUE_VIOLATION: &str = "23505";
 /// Save changes to a existing user in the database.
 /// If the user does not exist, it will throw a error.
 pub async fn save_user(user: &User) -> Result<(), SaveUserError> {
-    let mut conn = get_connection().await.map_err(|e| {
-        eprintln!("Could not get database connection: {:?}", e);
-        SaveUserError::DatabaseError
-    })?;
+    let mut conn = get_connection()
+        .await
+        .map_err(|_| SaveUserError::DatabaseError)?;
 
     let result = sqlx::query("UPDATE users SET email = $1 WHERE id = $2")
         .bind(user.email())
