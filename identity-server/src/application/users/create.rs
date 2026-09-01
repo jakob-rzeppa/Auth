@@ -1,7 +1,7 @@
 use uuid::Uuid;
 
 use crate::{
-    domain::user::{User, UserError},
+    domain::entity::user::{User, UserError},
     persistence::users::register::{RegisterUserError, register_user},
 };
 

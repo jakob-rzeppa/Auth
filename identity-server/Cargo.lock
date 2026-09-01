@@ -916,6 +916,7 @@ dependencies = [
 name = "privilege"
 version = "0.1.0"
 dependencies = [
+ "serde",
  "uuid",
 ]
 

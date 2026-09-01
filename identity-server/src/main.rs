@@ -1,14 +1,11 @@
 use std::net::SocketAddr;
 
-use axum::Router;
 use tokio::net::TcpListener;
 
-mod domain {
-    pub mod user;
-}
 mod api;
 mod application;
 mod config;
+mod domain;
 mod persistence;
 
 #[tokio::main]

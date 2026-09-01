@@ -1,8 +1,9 @@
 use std::fmt::Display;
 
+use serde::Serialize;
 use uuid::Uuid;
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum Privilege {}
 
 impl Display for Privilege {

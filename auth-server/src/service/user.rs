@@ -1,4 +1,4 @@
-use crate::domain::user::User;
+use crate::domain::entity::user::User;
 
 pub enum UserHandlerError {
     InvalidPassword,

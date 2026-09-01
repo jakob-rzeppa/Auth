@@ -1,7 +1,7 @@
 use sqlx::prelude::FromRow;
 use uuid::Uuid;
 
-use crate::{domain::user::User, persistence::get_connection};
+use crate::{domain::entity::user::User, persistence::get_connection};
 
 pub enum FindByIdUserError {
     InvalidData,
