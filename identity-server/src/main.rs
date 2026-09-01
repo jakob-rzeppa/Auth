@@ -4,7 +4,6 @@ use axum::Router;
 use tokio::net::TcpListener;
 
 mod domain {
-    pub mod privilege;
     pub mod user;
 }
 mod api;

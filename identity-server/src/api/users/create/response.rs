@@ -2,13 +2,13 @@ use axum::{http::StatusCode, response::IntoResponse};
 use serde::Serialize;
 
 #[derive(Serialize)]
-pub struct CreatePrivilegeResponse {
+pub struct CreateUserResponse {
     pub id: String,
 }
 
-impl IntoResponse for CreatePrivilegeResponse {
+impl IntoResponse for CreateUserResponse {
     fn into_response(self) -> axum::response::Response {
-        (StatusCode::OK, axum::Json(self)).into_response()
+        (StatusCode::CREATED, axum::Json(self)).into_response()
     }
 }
 
@@ -19,13 +19,13 @@ mod tests {
     #[tokio::test]
     async fn test_create_privilege_response_into_response() {
         let test_id = "123e4567-e89b-12d3-a456-426614174000";
-        let response = CreatePrivilegeResponse {
+        let response = CreateUserResponse {
             id: test_id.to_string(),
         };
 
         let axum_response = response.into_response();
 
-        assert_eq!(axum_response.status(), StatusCode::OK);
+        assert_eq!(axum_response.status(), StatusCode::CREATED);
 
         let body_bytes = axum::body::to_bytes(axum_response.into_body(), usize::MAX)
             .await

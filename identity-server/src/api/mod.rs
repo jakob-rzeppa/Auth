@@ -1,5 +1,5 @@
-mod privileges;
+mod users;
 
 pub fn router() -> axum::Router {
-    axum::Router::new().nest("/privileges", privileges::router())
+    axum::Router::new().nest("/users", users::router())
 }

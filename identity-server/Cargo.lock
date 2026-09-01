@@ -699,6 +699,7 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "fnmock",
+ "privilege",
  "serde",
  "serde_json",
  "sqlx",
@@ -899,6 +900,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d83eb9bc6d8e5cf568e7a1101d60ee05e81ed50ea106026f3d18deeb046d7661"
 dependencies = [
  "zerovec",
+]
+
+[[package]]
+name = "privilege"
+version = "0.1.0"
+dependencies = [
+ "uuid",
 ]
 
 [[package]]

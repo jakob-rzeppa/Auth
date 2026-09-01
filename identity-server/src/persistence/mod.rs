@@ -4,17 +4,16 @@ use sqlx::{Pool, Postgres, pool::PoolConnection};
 
 use crate::config::CONFIG;
 
-pub mod privileges;
+pub mod users;
 
 static DB_POOL: LazyLock<Pool<Postgres>> = LazyLock::new(|| {
     let database_url = CONFIG.database_url();
     Pool::<Postgres>::connect_lazy(database_url).expect("Failed to create database pool")
 });
 
+#[derive(Debug)]
 pub enum DatabaseError {
     ConnectionError(sqlx::Error),
-    QueryError(sqlx::Error),
-    DuplicateName,
 }
 
 async fn get_connection() -> Result<PoolConnection<Postgres>, DatabaseError> {
