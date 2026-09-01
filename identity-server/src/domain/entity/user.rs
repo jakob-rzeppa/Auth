@@ -40,6 +40,16 @@ impl User {
         &self.email
     }
 
+    pub fn set_email(&mut self, email: String) -> Result<(), UserError> {
+        if email.is_empty() || !email.contains('@') {
+            return Err(UserError::InvalidEmail);
+        }
+
+        self.email = email;
+
+        Ok(())
+    }
+
     pub fn privileges(&self) -> &[Privilege] {
         &self.privileges
     }
@@ -80,6 +90,36 @@ mod tests {
         assert_eq!(user.id(), id);
         assert_eq!(user.email(), &email);
         assert_eq!(user.privileges(), &privileges);
+    }
+
+    #[test]
+    fn set_email_updates_email_with_valid_input() {
+        let mut user = User::new(Uuid::new_v4(), "old@example.com".to_string(), vec![]).unwrap();
+
+        let result = user.set_email("new@example.com".to_string());
+
+        assert!(result.is_ok());
+        assert_eq!(user.email(), "new@example.com");
+    }
+
+    #[test]
+    fn set_email_rejects_empty_email() {
+        let mut user = User::new(Uuid::new_v4(), "old@example.com".to_string(), vec![]).unwrap();
+
+        let result = user.set_email("".to_string());
+
+        assert!(matches!(result, Err(UserError::InvalidEmail)));
+        assert_eq!(user.email(), "old@example.com");
+    }
+
+    #[test]
+    fn set_email_rejects_email_without_at_symbol() {
+        let mut user = User::new(Uuid::new_v4(), "old@example.com".to_string(), vec![]).unwrap();
+
+        let result = user.set_email("invalidemail.com".to_string());
+
+        assert!(matches!(result, Err(UserError::InvalidEmail)));
+        assert_eq!(user.email(), "old@example.com");
     }
 
     #[test]

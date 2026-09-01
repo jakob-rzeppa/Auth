@@ -1,6 +1,7 @@
 mod create;
 mod delete;
 mod get;
+mod update;
 
 pub fn router() -> axum::Router {
     axum::Router::new()
@@ -10,4 +11,8 @@ pub fn router() -> axum::Router {
             axum::routing::delete(delete::delete_user_endpoint),
         )
         .route("/{user_id}", axum::routing::get(get::get_user_endpoint))
+        .route(
+            "/{user_id}",
+            axum::routing::patch(update::update_user_endpoint),
+        )
 }
