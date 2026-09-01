@@ -3,10 +3,12 @@
 //! Procedural macros for building HTTP API types.
 
 mod api_error_response;
+mod api_request;
+mod api_response;
 
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
-use syn::{Error, ItemEnum};
+use syn::{Error, Expr, ItemEnum, ItemStruct};
 
 /// Generates an [`axum::response::IntoResponse`] implementation for an error enum.
 ///
@@ -38,6 +40,72 @@ pub fn ApiErrorResponse(attr: TokenStream, item: TokenStream) -> TokenStream {
     let item = syn::parse_macro_input!(item as ItemEnum);
 
     match api_error_response::expand(item) {
+        Ok(tokens) => tokens.into(),
+        Err(err) => err.to_compile_error().into(),
+    }
+}
+
+/// Generates an [`axum::response::IntoResponse`] implementation for a success response
+/// struct and derives [`serde::Serialize`] on it.
+///
+/// The macro takes a single argument: the [`axum::http::StatusCode`] expression the
+/// response should carry. The struct is serialised into the JSON body.
+///
+/// ```ignore
+/// #[ApiResponse(axum::http::StatusCode::CREATED)]
+/// pub struct CreateUserResponse {
+///     pub id: String,
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn ApiResponse(attr: TokenStream, item: TokenStream) -> TokenStream {
+    if attr.is_empty() {
+        return Error::new(
+            proc_macro2::Span::call_site(),
+            "`ApiResponse` takes a status code expression, e.g. `#[ApiResponse(axum::http::StatusCode::CREATED)]`",
+        )
+        .to_compile_error()
+        .into();
+    }
+
+    let status = syn::parse_macro_input!(attr as Expr);
+    let item = syn::parse_macro_input!(item as ItemStruct);
+
+    match api_response::expand(status, item) {
+        Ok(tokens) => tokens.into(),
+        Err(err) => err.to_compile_error().into(),
+    }
+}
+
+/// Generates an [`axum::extract::FromRequest`] implementation for a request struct
+/// and derives [`serde::Deserialize`] on it.
+///
+/// The implementation reads the entire request body and deserialises it from JSON.
+/// Any failure - reading the body or deserialising it - is turned into the error
+/// given as the macro's single argument, which must be an enum-variant path. The
+/// enum it names becomes the rejection type.
+///
+/// ```ignore
+/// #[ApiRequest(UpdateUserErrorResponse::InvalidBody)]
+/// pub struct UpdateUserRequest {
+///     pub email: Option<String>,
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn ApiRequest(attr: TokenStream, item: TokenStream) -> TokenStream {
+    if attr.is_empty() {
+        return Error::new(
+            proc_macro2::Span::call_site(),
+            "`ApiRequest` takes an enum-variant path, e.g. `#[ApiRequest(UpdateUserErrorResponse::InvalidBody)]`",
+        )
+        .to_compile_error()
+        .into();
+    }
+
+    let error = syn::parse_macro_input!(attr as Expr);
+    let item = syn::parse_macro_input!(item as ItemStruct);
+
+    match api_request::expand(error, item) {
         Ok(tokens) => tokens.into(),
         Err(err) => err.to_compile_error().into(),
     }
