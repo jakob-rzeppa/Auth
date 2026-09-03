@@ -106,6 +106,11 @@ Later `--env-file` flags override earlier ones.
 
 ### Application changes
 
+**`GET /users/{id}` status code.** `src/api/users/get/response.rs` hand-writes
+`IntoResponse` and returns `StatusCode::CREATED` for a read. This is a slip. It is
+replaced with `#[ApiResponse(StatusCode::OK)]`, matching `CreateUserResponse`. The
+example test asserts `200`.
+
 **Port from config.** `identity-server/src/main.rs:19` hardcodes `8080`.
 `Config` (`src/config.rs`) gains an `app_port` field read from `APP_PORT`, and
 `main` binds `([0, 0, 0, 0], CONFIG.app_port())`.
@@ -137,7 +142,8 @@ and needs no retry loop of its own.
 
 ### Test crate
 
-A new top-level crate `e2e-tests/`, added to the workspace. It is deliberately not
+A new top-level crate `e2e-tests/`. The repo has no cargo workspace — every crate
+is standalone — so this one is too. It is deliberately not
 `identity-server/tests/`: that would put `reqwest` and `tokio` into identity-server's
 dependency graph, and a black-box HTTP client is not part of the service.
 
@@ -156,9 +162,9 @@ It generates a unique email so it stays correct once it has siblings that share 
 database. Broadening coverage to the remaining endpoints and error paths is
 follow-up work, explicitly out of scope here.
 
-`e2e-tests/Dockerfile` builds the crate and runs `cargo test`. Build context is the
-repo root so workspace manifests resolve. Cargo registry and target caching use
-`RUN --mount=type=cache` to keep reruns fast.
+`e2e-tests/Dockerfile` builds the crate and runs `cargo test`. Build context is
+`e2e-tests/` itself, since the crate is standalone. Cargo registry and target caching
+use `RUN --mount=type=cache` to keep reruns fast.
 
 ### Lifecycle
 
