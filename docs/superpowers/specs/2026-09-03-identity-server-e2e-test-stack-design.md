@@ -20,6 +20,8 @@ Tests run inside the compose network. The stack publishes no host ports.
 - `auth-server` is untouched. It has no compose service today.
 - Unit and integration tests inside the `identity-server` crate are unaffected.
   This design adds a black-box layer above them, not a replacement.
+- **A full e2e suite.** This change delivers the harness plus one example test.
+  Covering the remaining endpoints and error paths is follow-up work.
 - No CI wiring. `e2e.sh` is written so CI can call it, but adding a workflow is
   separate work.
 
@@ -143,23 +145,16 @@ dependency graph, and a black-box HTTP client is not part of the service.
 - Reads `BASE_URL` from the environment; panics with a clear message if unset.
 - Tests are `#[tokio::test]` functions issuing real HTTP requests.
 
-Initial coverage, mirroring the current API surface in `src/api/users/`:
+**Scope: one example test.** The deliverable is the harness, not coverage. A single
+test proves the whole stack is wired — container build, migrations, HTTP, database
+round-trip — and establishes the pattern for tests added later:
 
 - `POST /users` → `201 Created`, body `{"id": ...}`
-- `GET /users/{id}` after create → `200 OK`, matching email
-- `PATCH /users/{id}` updates, and the change is visible on a subsequent `GET`
-- `DELETE /users/{id}` → `204 No Content`, then `GET` → `404`
-- `GET /users/{not-a-uuid}` → `400`, body `{"error": "...", "error_description": "..."}`
-- `GET /users/{unknown-uuid}` → `404`
-- `POST /users` with a duplicate email → `409 Conflict`, error code `email_already_exists`
-- `GET /health` → `200 OK`
+- `GET /users/{id}` with that id → `200 OK`, email matches what was created
 
-Error bodies follow the `ApiErrorResponse` shape from `libs/api-macros`:
-`{"error": <code>, "error_description": <description>}`. Tests assert on the
-`error` code, not the human-readable description.
-
-Because the database is fresh per run and per-test isolation is not provided,
-each test generates its own unique email.
+It generates a unique email so it stays correct once it has siblings that share the
+database. Broadening coverage to the remaining endpoints and error paths is
+follow-up work, explicitly out of scope here.
 
 `e2e-tests/Dockerfile` builds the crate and runs `cargo test`. Build context is the
 repo root so workspace manifests resolve. Cargo registry and target caching use
@@ -203,7 +198,7 @@ The harness is verified by observation, not by tests of its own:
 2. `docker ps -a`, `docker volume ls`, and `docker network ls` show no
    `identity-server-e2e` resources afterwards — proving cleanup.
 3. Two consecutive runs both pass — proving a clean database each time.
-4. Deliberately breaking an endpoint makes `e2e.sh` exit non-zero.
+4. Deliberately breaking `GET /users/{id}` makes `e2e.sh` exit non-zero.
 5. `docker compose -p identity-server-e2e ... exec` cannot reach the DB from the
    frontend network — proving the network boundary.
 
