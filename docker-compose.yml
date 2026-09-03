@@ -1,2 +1,7 @@
 include:
-  - identity-server/docker-compose.yml
+  # The dev override publishes host ports; env_file supplies the values it
+  # interpolates (env_file: on a service only reaches inside the container).
+  - path:
+      - identity-server/docker-compose.yml
+      - identity-server/docker-compose.dev.yml
+    env_file: identity-server/.env

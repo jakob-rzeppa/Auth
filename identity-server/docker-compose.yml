@@ -1,14 +1,16 @@
+# Topology only. Nothing here publishes a host port, so the stack can be brought
+# up more than once side by side under different project names.
+# Host ports live in docker-compose.dev.yml; the e2e stack adds docker-compose.e2e.yml.
 services:
   identity-server-db:
     image: postgres:17-alpine
-    container_name: identity-server-db
     env_file:
       - path: .env
         required: true
       - path: .env.local
         required: false
-    ports:
-      - "127.0.0.1:5432:5432"
+    networks:
+      - identity-server-internal
     volumes:
       - identity-server-db-data:/var/lib/postgresql/data
     healthcheck:
@@ -27,6 +29,8 @@ services:
       - path: .env.local
         required: false
     command: ["migrate", "run"]
+    networks:
+      - identity-server-internal
     volumes:
       - ./migrations:/app/migrations
     depends_on:
@@ -37,17 +41,31 @@ services:
     build:
       context: .
       target: runtime
-    container_name: identity-server
-    ports:
-      - "8080:8080"
     env_file:
       - path: .env
         required: true
       - path: .env.local
         required: false
+    networks:
+      - identity-server-internal
+      - identity-server
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:${APP_PORT}/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
     depends_on:
       identity-server-migrate:
         condition: service_completed_successfully
+
+networks:
+  # internal: no route off this network. The database is reachable only from
+  # containers attached to it, and has no outbound internet access itself.
+  identity-server-internal:
+    internal: true
+
+  identity-server:
 
 volumes:
   identity-server-db-data:

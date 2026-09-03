@@ -1,0 +1,33 @@
+# Ephemeral end-to-end test stack. Publishes no host ports; the suite runs inside
+# the compose network. Always invoked through ../e2e.sh, which supplies the project
+# name and env files and tears the stack down afterwards.
+#
+# compose merges `env_file:` lists by appending, so .env.test lands after the base
+# file's .env / .env.local and its values win.
+services:
+  identity-server-db:
+    env_file:
+      - path: .env.test
+        required: true
+
+  identity-server-migrate:
+    env_file:
+      - path: .env.test
+        required: true
+
+  identity-server:
+    env_file:
+      - path: .env.test
+        required: true
+
+  e2e:
+    build:
+      context: ./e2e-tests
+    env_file:
+      - path: .env.test
+        required: true
+    networks:
+      - identity-server
+    depends_on:
+      identity-server:
+        condition: service_healthy

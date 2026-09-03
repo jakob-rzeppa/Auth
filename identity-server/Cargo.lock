@@ -11,6 +11,7 @@ checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 [[package]]
 name = "api-macros"
 version = "0.1.0"
+source = "git+https://github.com/jakob-rzeppa/Auth.git?branch=main#fcbdf32b0f2d7cbbb3c498719b1eec0b3f53cf35"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -915,6 +916,7 @@ dependencies = [
 [[package]]
 name = "privilege"
 version = "0.1.0"
+source = "git+https://github.com/jakob-rzeppa/Auth.git?branch=main#fcbdf32b0f2d7cbbb3c498719b1eec0b3f53cf35"
 dependencies = [
  "serde",
  "uuid",

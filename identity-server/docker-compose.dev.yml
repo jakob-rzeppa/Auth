@@ -1,0 +1,16 @@
+# Host port publishing for local development. Included by the root
+# docker-compose.yml, so `docker compose up` from the repo root behaves as before.
+#
+# Kept out of the base file because compose merges `ports:` by appending - a port
+# published in the base file cannot be removed by an override, which would break
+# running the e2e stack alongside this one.
+services:
+  identity-server-db:
+    ports:
+      # Published for local tooling (psql, dev.sh). Note this bypasses the
+      # internal backend network, so it is deliberately dev-only.
+      - "127.0.0.1:${DB_HOST_PORT}:5432"
+
+  identity-server:
+    ports:
+      - "${APP_HOST_PORT}:${APP_PORT}"
