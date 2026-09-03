@@ -11,9 +11,14 @@ publish = false
 [dependencies]
 
 [dev-dependencies]
-# No TLS backend: the suite only ever talks to the service over plain HTTP inside
-# the compose network, and dropping it avoids needing OpenSSL in the test image.
-reqwest = { version = "0.12", default-features = false, features = ["json"] }
+# Blocking client, no TLS backend and no async runtime: the suite only ever makes
+# sequential plain-HTTP calls to the service inside the compose network. Avoiding
+# reqwest/hyper/tokio keeps the dependency graph (and compile time) small.
+ureq = { version = "3", default-features = false, features = ["json"] }
 serde_json = "1.0.151"
-tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread"] }
 uuid = { version = "1.26.0", features = ["v4"] }
+
+# This crate is only ever built for tests; debuginfo just costs compile and link
+# time here.
+[profile.test]
+debug = false

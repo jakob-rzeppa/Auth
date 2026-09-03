@@ -18,30 +18,26 @@ fn unique_email() -> String {
     format!("{}@example.com", Uuid::new_v4())
 }
 
-#[tokio::test]
-async fn full_user_lifecycle() {
+#[test]
+fn full_user_lifecycle() {
     let base_url = base_url();
-    let client = reqwest::Client::new();
     let email = unique_email();
     let updated_email = unique_email();
 
     // create
-    let create_response = client
-        .post(format!("{base_url}/users"))
-        .json(&serde_json::json!({ "email": email }))
-        .send()
-        .await
+    let mut create_response = ureq::post(format!("{base_url}/users"))
+        .send_json(serde_json::json!({ "email": email }))
         .expect("POST /users failed to send");
 
     assert_eq!(
         create_response.status(),
-        reqwest::StatusCode::CREATED,
+        201,
         "expected 201 Created from POST /users"
     );
 
     let created: serde_json::Value = create_response
-        .json()
-        .await
+        .body_mut()
+        .read_json()
         .expect("POST /users returned a body that is not JSON");
     let id = created["id"]
         .as_str()
@@ -49,82 +45,69 @@ async fn full_user_lifecycle() {
         .to_owned();
 
     // get - reads back what was created
-    let get_response = client
-        .get(format!("{base_url}/users/{id}"))
-        .send()
-        .await
+    let mut get_response = ureq::get(format!("{base_url}/users/{id}"))
+        .call()
         .expect("GET /users/{id} failed to send");
 
     assert_eq!(
         get_response.status(),
-        reqwest::StatusCode::OK,
+        200,
         "expected 200 OK from GET /users/{{id}}"
     );
 
     let fetched: serde_json::Value = get_response
-        .json()
-        .await
+        .body_mut()
+        .read_json()
         .expect("GET /users/{id} returned a body that is not JSON");
     assert_eq!(fetched["data"]["id"], id);
     assert_eq!(fetched["data"]["email"], email);
 
     // update
-    let update_response = client
-        .patch(format!("{base_url}/users/{id}"))
-        .json(&serde_json::json!({ "email": updated_email }))
-        .send()
-        .await
+    let update_response = ureq::patch(format!("{base_url}/users/{id}"))
+        .send_json(serde_json::json!({ "email": updated_email }))
         .expect("PATCH /users/{id} failed to send");
 
     assert_eq!(
         update_response.status(),
-        reqwest::StatusCode::NO_CONTENT,
+        204,
         "expected 204 No Content from PATCH /users/{{id}}"
     );
 
     // get - reflects the update
-    let get_response = client
-        .get(format!("{base_url}/users/{id}"))
-        .send()
-        .await
+    let mut get_response = ureq::get(format!("{base_url}/users/{id}"))
+        .call()
         .expect("GET /users/{id} failed to send");
 
     assert_eq!(
         get_response.status(),
-        reqwest::StatusCode::OK,
+        200,
         "expected 200 OK from GET /users/{{id}} after update"
     );
 
     let fetched: serde_json::Value = get_response
-        .json()
-        .await
+        .body_mut()
+        .read_json()
         .expect("GET /users/{id} returned a body that is not JSON");
     assert_eq!(fetched["data"]["id"], id);
     assert_eq!(fetched["data"]["email"], updated_email);
 
     // delete
-    let delete_response = client
-        .delete(format!("{base_url}/users/{id}"))
-        .send()
-        .await
+    let delete_response = ureq::delete(format!("{base_url}/users/{id}"))
+        .call()
         .expect("DELETE /users/{id} failed to send");
 
     assert_eq!(
         delete_response.status(),
-        reqwest::StatusCode::NO_CONTENT,
+        204,
         "expected 204 No Content from DELETE /users/{{id}}"
     );
 
     // get - gone
-    let get_response = client
-        .get(format!("{base_url}/users/{id}"))
-        .send()
-        .await
-        .expect("GET /users/{id} failed to send");
+    let get_response = ureq::get(format!("{base_url}/users/{id}"))
+        .call();
 
-    assert_eq!(
-        get_response.status(),
-        reqwest::StatusCode::NOT_FOUND,
-        "expected 404 Not Found from GET /users/{{id}} after delete"
-    );
+    match get_response {
+        Err(ureq::Error::StatusCode(404)) => {}
+        other => panic!("expected 404 Not Found from GET /users/{{id}} after delete, got {other:?}"),
+    }
 }
