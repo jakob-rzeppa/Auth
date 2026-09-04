@@ -15,7 +15,7 @@ pub mod response;
 
 #[utoipa::path(
     post,
-    path = "/users",
+    path = "/v1/users",
     tag = "users",
     request_body = CreateUserRequest,
     responses(

@@ -9,7 +9,7 @@ pub mod error_response;
 
 #[utoipa::path(
     delete,
-    path = "/users/{user_id}",
+    path = "/v1/users/{user_id}",
     tag = "users",
     params(("user_id" = String, Path, description = "The user's ID.")),
     responses(

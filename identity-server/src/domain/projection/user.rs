@@ -1,5 +1,6 @@
 use privilege::Privilege;
 use serde::Serialize;
+use uuid::Uuid;
 
 use crate::domain::entity::user::User;
 
@@ -7,7 +8,7 @@ use crate::domain::entity::user::User;
 /// itself, so the field is documented as its serialised shape (its name) instead.
 #[derive(Serialize, utoipa::ToSchema)]
 pub struct FullUserProjection {
-    pub id: String,
+    pub id: Uuid,
     pub email: String,
 
     #[schema(value_type = Vec<String>)]
@@ -17,7 +18,7 @@ pub struct FullUserProjection {
 impl From<User> for FullUserProjection {
     fn from(user: User) -> Self {
         Self {
-            id: user.id().to_string(),
+            id: user.id(),
             email: user.email().to_string(),
             privileges: user.privileges().to_vec(),
         }
