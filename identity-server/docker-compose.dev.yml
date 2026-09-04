@@ -6,6 +6,12 @@
 # running the e2e stack alongside this one.
 services:
   identity-server-db:
+    # `identity-server-internal` is `internal: true`, which makes Docker
+    # skip host port publishing entirely for containers only attached to
+    # it - `ports:` below would silently never bind. Attach a second,
+    # non-internal network just so the published port actually works.
+    networks:
+      - identity-server-db-host-access
     ports:
       # Published for local tooling (psql, dev.sh). Note this bypasses the
       # internal backend network, so it is deliberately dev-only.
@@ -14,3 +20,6 @@ services:
   identity-server:
     ports:
       - "${APP_HOST_PORT}:${APP_PORT}"
+
+networks:
+  identity-server-db-host-access:
