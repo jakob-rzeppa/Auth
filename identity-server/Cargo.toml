@@ -14,3 +14,5 @@ uuid = { version="1.26.0", features=["v4"] }
 
 api-macros = { git = "https://github.com/jakob-rzeppa/Auth.git", branch = "main" }
 privilege = { git = "https://github.com/jakob-rzeppa/Auth.git", branch = "main" }
+utoipa = { version = "5.5.0", features = ["axum_extras", "uuid"] }
+utoipa-swagger-ui = { version = "9.0.2", features = ["axum"] }

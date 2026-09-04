@@ -1,7 +1,7 @@
-mod create;
-mod delete;
-mod get;
-mod update;
+pub mod create;
+pub mod delete;
+pub mod get;
+pub mod update;
 
 pub fn router() -> axum::Router {
     axum::Router::new()

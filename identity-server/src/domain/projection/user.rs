@@ -3,11 +3,14 @@ use serde::Serialize;
 
 use crate::domain::entity::user::User;
 
-#[derive(Serialize)]
+/// `Privilege` lives in an external crate and can't derive `utoipa::ToSchema`
+/// itself, so the field is documented as its serialised shape (its name) instead.
+#[derive(Serialize, utoipa::ToSchema)]
 pub struct FullUserProjection {
     pub id: String,
     pub email: String,
 
+    #[schema(value_type = Vec<String>)]
     pub privileges: Vec<Privilege>,
 }
 
