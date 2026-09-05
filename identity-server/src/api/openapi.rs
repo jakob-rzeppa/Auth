@@ -24,6 +24,7 @@ pub struct ErrorBody {
         health::health_endpoint,
         users::create::create_user_endpoint,
         users::get::get_user_endpoint,
+        users::query::query_users_endpoint,
         users::update::update_user_endpoint,
         users::delete::delete_user_endpoint,
         users::authenticate::authenticate_user_endpoint,

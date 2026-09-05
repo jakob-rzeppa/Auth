@@ -1,6 +1,7 @@
 use sqlx::prelude::FromRow;
 use uuid::Uuid;
 
+pub mod find_all;
 pub mod find_by_email;
 pub mod find_by_id;
 pub mod register;
