@@ -1,6 +1,11 @@
+pub mod authenticate;
 pub mod create;
 pub mod delete;
 pub mod get;
+pub mod password {
+    pub mod reset;
+    pub mod set;
+}
 pub mod update;
 
 pub fn router() -> axum::Router {
@@ -14,5 +19,17 @@ pub fn router() -> axum::Router {
         .route(
             "/{user_id}",
             axum::routing::patch(update::update_user_endpoint),
+        )
+        .route(
+            "/{user_id}/password",
+            axum::routing::put(password::set::set_password_endpoint),
+        )
+        .route(
+            "/{user_id}/password",
+            axum::routing::delete(password::reset::reset_password_endpoint),
+        )
+        .route(
+            "/authenticate",
+            axum::routing::post(authenticate::authenticate_user_endpoint),
         )
 }

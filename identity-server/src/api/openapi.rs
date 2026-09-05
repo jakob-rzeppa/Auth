@@ -2,8 +2,7 @@
 
 use utoipa::OpenApi;
 
-use crate::api::health;
-use crate::api::users::{create, delete, get, update};
+use crate::api::{health, users};
 
 /// Documents the `{"error": ..., "error_description": ...}` body produced by every
 /// `#[ApiErrorResponse]` enum. The enums themselves can't derive `ToSchema` - their
@@ -23,10 +22,13 @@ pub struct ErrorBody {
     info(title = "Identity Server", version = env!("CARGO_PKG_VERSION")),
     paths(
         health::health_endpoint,
-        create::create_user_endpoint,
-        get::get_user_endpoint,
-        update::update_user_endpoint,
-        delete::delete_user_endpoint,
+        users::create::create_user_endpoint,
+        users::get::get_user_endpoint,
+        users::update::update_user_endpoint,
+        users::delete::delete_user_endpoint,
+        users::authenticate::authenticate_user_endpoint,
+        users::password::set::set_password_endpoint,
+        users::password::reset::reset_password_endpoint,
     ),
     components(schemas(ErrorBody))
 )]

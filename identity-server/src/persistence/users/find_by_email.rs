@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::{domain::entity::user::User, persistence::get_connection};
 
-pub enum FindByIdUserError {
+pub enum FindByEmailUserError {
     InvalidData,
     DatabaseError,
 }
@@ -16,21 +16,21 @@ struct UserRow {
     has_temporary_password: bool,
 }
 
-pub async fn find_user_by_id(user_id: Uuid) -> Result<Option<User>, FindByIdUserError> {
+pub async fn find_user_by_email(email: &str) -> Result<Option<User>, FindByEmailUserError> {
     let mut conn = get_connection()
         .await
-        .map_err(|_| FindByIdUserError::DatabaseError)?;
+        .map_err(|_| FindByEmailUserError::DatabaseError)?;
 
     let row: Option<UserRow> = query_as!(
         UserRow,
-        "SELECT id, email, password_hash, has_temporary_password FROM users WHERE id = $1",
-        user_id
+        "SELECT id, email, password_hash, has_temporary_password FROM users WHERE email = $1",
+        email
     )
     .fetch_optional(&mut *conn)
     .await
     .map_err(|error| {
         eprintln!("Unknown Database error: {:?}", error);
-        FindByIdUserError::DatabaseError
+        FindByEmailUserError::DatabaseError
     })?;
 
     if let Some(row) = row {
@@ -44,7 +44,7 @@ pub async fn find_user_by_id(user_id: Uuid) -> Result<Option<User>, FindByIdUser
             )
             .map_err(|error| {
                 eprintln!("Database row violated user invariants: {:?}", error);
-                FindByIdUserError::InvalidData
+                FindByEmailUserError::InvalidData
             })?,
         ))
     } else {

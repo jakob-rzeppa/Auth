@@ -1,3 +1,5 @@
+use sqlx::query;
+
 use crate::{domain::entity::user::User, persistence::get_connection};
 
 pub enum RegisterUserError {
@@ -12,9 +14,9 @@ pub async fn register_user(user: &User) -> Result<(), RegisterUserError> {
         .await
         .map_err(|_| RegisterUserError::DatabaseError)?;
 
-    sqlx::query("INSERT INTO users (id, email) VALUES ($1, $2)")
-        .bind(user.id())
-        .bind(user.email())
+    query!(
+        "INSERT INTO users (id, email, password_hash, has_temporary_password) VALUES ($1, $2, $3, $4)",
+        user.id(), user.email(), user.password_hash(), user.has_temporary_password())
         .execute(&mut *conn)
         .await
         .map_err(|error| {

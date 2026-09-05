@@ -1,10 +1,8 @@
 use api_macros::ApiResponse;
 use axum::http::StatusCode;
-use uuid::Uuid;
 
-#[ApiResponse(StatusCode::CREATED)]
+#[ApiResponse(StatusCode::OK)]
 #[derive(utoipa::ToSchema)]
-pub struct CreateUserResponse {
-    pub id: Uuid,
+pub struct ResetPasswordResponse {
     pub temporary_password: String,
 }

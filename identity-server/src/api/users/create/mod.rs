@@ -38,13 +38,19 @@ pub mod response;
 pub async fn create_user_endpoint(
     CreateUserRequest { email }: CreateUserRequest,
 ) -> Result<CreateUserResponse, CreateUserErrorResponse> {
-    let id = create_user(email).await.map_err(|e| match e {
+    let (id, temporary_password) = create_user(email).await.map_err(|e| match e {
         CreateUserApplicationError::InvalidEmail => CreateUserErrorResponse::InvalidEmail,
         CreateUserApplicationError::EmailAlreadyExists => {
             CreateUserErrorResponse::EmailAlreadyExists
         }
         CreateUserApplicationError::DatabaseError => CreateUserErrorResponse::InternalServerError,
+        CreateUserApplicationError::PasswordHashingError => {
+            CreateUserErrorResponse::InternalServerError
+        }
     })?;
 
-    Ok(CreateUserResponse { id: id.to_string() })
+    Ok(CreateUserResponse {
+        id,
+        temporary_password,
+    })
 }

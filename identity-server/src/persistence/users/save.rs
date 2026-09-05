@@ -1,3 +1,5 @@
+use sqlx::query;
+
 use crate::{domain::entity::user::User, persistence::get_connection};
 
 pub enum SaveUserError {
@@ -15,24 +17,28 @@ pub async fn save_user(user: &User) -> Result<(), SaveUserError> {
         .await
         .map_err(|_| SaveUserError::DatabaseError)?;
 
-    let result = sqlx::query("UPDATE users SET email = $1 WHERE id = $2")
-        .bind(user.email())
-        .bind(user.id())
-        .execute(&mut *conn)
-        .await
-        .map_err(|error| {
-            if error
-                .as_database_error()
-                .and_then(|db_error| db_error.code())
-                .as_deref()
-                == Some(UNIQUE_VIOLATION)
-            {
-                SaveUserError::EmailAlreadyExists
-            } else {
-                eprintln!("Unknown Database error: {:?}", error);
-                SaveUserError::DatabaseError
-            }
-        })?;
+    let result = query!(
+        "UPDATE users SET email = $1, password_hash = $2, has_temporary_password = $3 WHERE id = $4",
+        user.email(),
+        user.password_hash(),
+        user.has_temporary_password(),
+        user.id()
+    )
+    .execute(&mut *conn)
+    .await
+    .map_err(|error| {
+        if error
+            .as_database_error()
+            .and_then(|db_error| db_error.code())
+            .as_deref()
+            == Some(UNIQUE_VIOLATION)
+        {
+            SaveUserError::EmailAlreadyExists
+        } else {
+            eprintln!("Unknown Database error: {:?}", error);
+            SaveUserError::DatabaseError
+        }
+    })?;
 
     if result.rows_affected() == 0 {
         eprintln!(

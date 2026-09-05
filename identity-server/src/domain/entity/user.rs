@@ -12,11 +12,20 @@ pub struct User {
 
     email: String,
 
+    password_hash: String,
+    has_temporary_password: bool,
+
     privileges: Vec<Privilege>,
 }
 
 impl User {
-    pub fn new(id: Uuid, email: String, privileges: Vec<Privilege>) -> Result<Self, UserError> {
+    pub fn new(
+        id: Uuid,
+        email: String,
+        password_hash: String,
+        has_temporary_password: bool,
+        privileges: Vec<Privilege>,
+    ) -> Result<Self, UserError> {
         if id.is_nil() {
             return Err(UserError::EmptyId);
         }
@@ -28,6 +37,8 @@ impl User {
         Ok(Self {
             id,
             email,
+            password_hash,
+            has_temporary_password,
             privileges,
         })
     }
@@ -50,6 +61,18 @@ impl User {
         Ok(())
     }
 
+    pub fn password_hash(&self) -> &str {
+        &self.password_hash
+    }
+
+    pub fn set_password_hash(&mut self, password_hash: String) {
+        self.password_hash = password_hash;
+    }
+
+    pub fn has_temporary_password(&self) -> bool {
+        self.has_temporary_password
+    }
+
     pub fn privileges(&self) -> &[Privilege] {
         &self.privileges
     }
@@ -61,19 +84,37 @@ mod tests {
 
     #[test]
     fn rejects_nil_id() {
-        let result = User::new(Uuid::nil(), "user@example.com".to_string(), vec![]);
+        let result = User::new(
+            Uuid::nil(),
+            "user@example.com".to_string(),
+            "password_hash".to_string(),
+            false,
+            vec![],
+        );
         assert!(matches!(result, Err(UserError::EmptyId)));
     }
 
     #[test]
     fn rejects_empty_email() {
-        let result = User::new(Uuid::new_v4(), "".to_string(), vec![]);
+        let result = User::new(
+            Uuid::new_v4(),
+            "".to_string(),
+            "password_hash".to_string(),
+            false,
+            vec![],
+        );
         assert!(matches!(result, Err(UserError::InvalidEmail)));
     }
 
     #[test]
     fn rejects_email_without_at_symbol() {
-        let result = User::new(Uuid::new_v4(), "invalidemail.com".to_string(), vec![]);
+        let result = User::new(
+            Uuid::new_v4(),
+            "invalidemail.com".to_string(),
+            "password_hash".to_string(),
+            false,
+            vec![],
+        );
         assert!(matches!(result, Err(UserError::InvalidEmail)));
     }
 
@@ -83,7 +124,13 @@ mod tests {
         let email = "user@example.com".to_string();
         let privileges = vec![];
 
-        let result = User::new(id, email.clone(), privileges.clone());
+        let result = User::new(
+            id,
+            email.clone(),
+            "password_hash".to_string(),
+            false,
+            privileges.clone(),
+        );
 
         assert!(result.is_ok());
         let user = result.unwrap();
@@ -94,7 +141,14 @@ mod tests {
 
     #[test]
     fn set_email_updates_email_with_valid_input() {
-        let mut user = User::new(Uuid::new_v4(), "old@example.com".to_string(), vec![]).unwrap();
+        let mut user = User::new(
+            Uuid::new_v4(),
+            "old@example.com".to_string(),
+            "password_hash".to_string(),
+            false,
+            vec![],
+        )
+        .unwrap();
 
         let result = user.set_email("new@example.com".to_string());
 
@@ -104,7 +158,14 @@ mod tests {
 
     #[test]
     fn set_email_rejects_empty_email() {
-        let mut user = User::new(Uuid::new_v4(), "old@example.com".to_string(), vec![]).unwrap();
+        let mut user = User::new(
+            Uuid::new_v4(),
+            "old@example.com".to_string(),
+            "password_hash".to_string(),
+            false,
+            vec![],
+        )
+        .unwrap();
 
         let result = user.set_email("".to_string());
 
@@ -114,7 +175,14 @@ mod tests {
 
     #[test]
     fn set_email_rejects_email_without_at_symbol() {
-        let mut user = User::new(Uuid::new_v4(), "old@example.com".to_string(), vec![]).unwrap();
+        let mut user = User::new(
+            Uuid::new_v4(),
+            "old@example.com".to_string(),
+            "password_hash".to_string(),
+            false,
+            vec![],
+        )
+        .unwrap();
 
         let result = user.set_email("invalidemail.com".to_string());
 
@@ -128,7 +196,13 @@ mod tests {
         let valid_emails = vec!["a@b.com", "test+tag@example.co.uk", "user.name@domain.com"];
 
         for email in valid_emails {
-            let result = User::new(id, email.to_string(), vec![]);
+            let result = User::new(
+                id,
+                email.to_string(),
+                "password_hash".to_string(),
+                false,
+                vec![],
+            );
             assert!(result.is_ok(), "should accept email: {}", email);
         }
     }

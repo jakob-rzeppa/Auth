@@ -2,7 +2,12 @@ use api_macros::ApiErrorResponse;
 use axum::http::StatusCode;
 
 #[ApiErrorResponse]
-pub enum GetUserErrorResponse {
+pub enum SetPasswordErrorResponse {
+    #[status_code(StatusCode::BAD_REQUEST)]
+    #[error("invalid_request")]
+    #[description("Invalid request body.")]
+    InvalidBody,
+
     #[status_code(StatusCode::BAD_REQUEST)]
     #[error("invalid_user_id")]
     #[description("The provided user ID is invalid.")]

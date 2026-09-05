@@ -11,6 +11,8 @@ pub struct FullUserProjection {
     pub id: Uuid,
     pub email: String,
 
+    pub has_temporary_password: bool,
+
     #[schema(value_type = Vec<String>)]
     pub privileges: Vec<Privilege>,
 }
@@ -20,6 +22,7 @@ impl From<User> for FullUserProjection {
         Self {
             id: user.id(),
             email: user.email().to_string(),
+            has_temporary_password: user.has_temporary_password(),
             privileges: user.privileges().to_vec(),
         }
     }
