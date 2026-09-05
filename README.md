@@ -1,6 +1,8 @@
-# OAuth
+# Auth
 
-A implementation of OAuth 2.1 to get a better understanding of how it works.
+A implementation of OAuth 2.0 (2.1) to get a better understanding of how it works.
+
+This includes a idenity-server for user management.
 
 Even though [OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1) is currently work in progress, I will try to follow the current draft and make changes if necessary.
 
