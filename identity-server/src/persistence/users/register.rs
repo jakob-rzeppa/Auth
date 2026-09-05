@@ -3,7 +3,7 @@ use sqlx::query;
 use crate::{domain::entity::user::User, persistence::get_connection};
 
 pub enum RegisterUserError {
-    EmailAlreadyExists,
+    UserNameAlreadyExists,
     DatabaseError,
 }
 
@@ -15,8 +15,8 @@ pub async fn register_user(user: &User) -> Result<(), RegisterUserError> {
         .map_err(|_| RegisterUserError::DatabaseError)?;
 
     query!(
-        "INSERT INTO users (id, email, password_hash, has_temporary_password) VALUES ($1, $2, $3, $4)",
-        user.id(), user.email(), user.password_hash(), user.has_temporary_password())
+        "INSERT INTO users (id, user_name, display_name, password_hash, has_temporary_password) VALUES ($1, $2, $3, $4, $5)",
+        user.id(), user.user_name(), user.display_name(), user.password_hash(), user.has_temporary_password())
         .execute(&mut *conn)
         .await
         .map_err(|error| {
@@ -26,7 +26,7 @@ pub async fn register_user(user: &User) -> Result<(), RegisterUserError> {
                 .as_deref()
                 == Some(UNIQUE_VIOLATION)
             {
-                RegisterUserError::EmailAlreadyExists
+                RegisterUserError::UserNameAlreadyExists
             } else {
                 eprintln!("Unknown Database error: {:?}", error);
                 RegisterUserError::DatabaseError

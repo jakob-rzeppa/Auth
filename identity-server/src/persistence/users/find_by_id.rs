@@ -1,19 +1,14 @@
-use sqlx::{prelude::FromRow, query_as};
+use sqlx::query_as;
 use uuid::Uuid;
 
-use crate::{domain::entity::user::User, persistence::get_connection};
+use crate::{
+    domain::entity::user::User,
+    persistence::{get_connection, users::UserRow},
+};
 
 pub enum FindByIdUserError {
     InvalidData,
     DatabaseError,
-}
-
-#[derive(FromRow)]
-struct UserRow {
-    id: Uuid,
-    email: String,
-    password_hash: String,
-    has_temporary_password: bool,
 }
 
 pub async fn find_user_by_id(user_id: Uuid) -> Result<Option<User>, FindByIdUserError> {
@@ -23,7 +18,7 @@ pub async fn find_user_by_id(user_id: Uuid) -> Result<Option<User>, FindByIdUser
 
     let row: Option<UserRow> = query_as!(
         UserRow,
-        "SELECT id, email, password_hash, has_temporary_password FROM users WHERE id = $1",
+        "SELECT id, user_name, display_name, password_hash, has_temporary_password FROM users WHERE id = $1",
         user_id
     )
     .fetch_optional(&mut *conn)
@@ -37,7 +32,8 @@ pub async fn find_user_by_id(user_id: Uuid) -> Result<Option<User>, FindByIdUser
         Ok(Some(
             User::new(
                 row.id,
-                row.email,
+                row.user_name,
+                row.display_name,
                 row.password_hash,
                 row.has_temporary_password,
                 vec![],

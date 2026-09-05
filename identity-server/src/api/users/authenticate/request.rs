@@ -5,6 +5,6 @@ use crate::api::users::authenticate::error_response::AuthenticateUserErrorRespon
 #[ApiRequest(AuthenticateUserErrorResponse::InvalidBody)]
 #[derive(utoipa::ToSchema)]
 pub struct AuthenticateUserRequest {
-    pub email: String,
+    pub user_name: String,
     pub password: String,
 }

@@ -20,5 +20,5 @@ pub async fn get_full_user_projection(
         return Err(GetFullUserError::UserNotFound);
     };
 
-    Ok(FullUserProjection::from(user))
+    Ok(FullUserProjection::from(&user))
 }

@@ -9,14 +9,14 @@ pub enum CreateUserErrorResponse {
     InvalidBody,
 
     #[status_code(StatusCode::BAD_REQUEST)]
-    #[error("invalid_email")]
-    #[description("Email cannot be empty.")]
-    InvalidEmail,
+    #[error("invalid_user_name")]
+    #[description("The user name is invalid.")]
+    InvalidUserName,
 
     #[status_code(StatusCode::CONFLICT)]
-    #[error("email_already_exists")]
-    #[description("Email already exists.")]
-    EmailAlreadyExists,
+    #[error("user_name_already_exists")]
+    #[description("User name already exists.")]
+    UserNameAlreadyExists,
 
     #[status_code(StatusCode::INTERNAL_SERVER_ERROR)]
     #[error("internal_server_error")]

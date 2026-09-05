@@ -23,8 +23,8 @@ pub mod response;
         (status = UNAUTHORIZED, description = "The provided credentials were invalid.", body = ErrorBody,
             example = json!({"error": "invalid_credentials", "error_description": "The provided credentials are invalid."}),
         ),
-        (status = NOT_FOUND, description = "No user with this email exists.", body = ErrorBody,
-            example = json!({"error": "user_not_found", "error_description": "No user with this email exists."}),
+        (status = NOT_FOUND, description = "No user with this user name exists.", body = ErrorBody,
+            example = json!({"error": "user_not_found", "error_description": "No user with this user name exists."}),
         ),
         (status = INTERNAL_SERVER_ERROR, description = "An internal server error occurred.", body = ErrorBody,
             example = json!({"error": "internal_server_error", "error_description": "An internal server error occurred."}),
@@ -36,9 +36,12 @@ pub mod response;
 )]
 #[axum::debug_handler]
 pub async fn authenticate_user_endpoint(
-    AuthenticateUserRequest { email, password }: AuthenticateUserRequest,
+    AuthenticateUserRequest {
+        user_name,
+        password,
+    }: AuthenticateUserRequest,
 ) -> Result<AuthenticateUserResponse, AuthenticateUserErrorResponse> {
-    let user_projection = authenticate_user(&email, &password)
+    let user_projection = authenticate_user(&user_name, &password)
         .await
         .map_err(|e| match e {
             AuthenticateUserError::InternalError => {

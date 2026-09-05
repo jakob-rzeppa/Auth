@@ -10,7 +10,7 @@ pub enum AuthenticateUserErrorResponse {
 
     #[status_code(StatusCode::NOT_FOUND)]
     #[error("user_not_found")]
-    #[description("No user with this email exists.")]
+    #[description("No user with this user name exists.")]
     UserNotFound,
 
     #[status_code(StatusCode::UNAUTHORIZED)]

@@ -5,5 +5,6 @@ use crate::api::users::update::error_response::UpdateUserErrorResponse;
 #[ApiRequest(UpdateUserErrorResponse::InvalidBody)]
 #[derive(utoipa::ToSchema)]
 pub struct UpdateUserRequest {
-    pub email: Option<String>,
+    pub user_name: Option<String>,
+    pub display_name: Option<String>,
 }

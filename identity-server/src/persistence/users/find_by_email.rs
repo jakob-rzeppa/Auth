@@ -1,50 +1,47 @@
-use sqlx::{prelude::FromRow, query_as};
-use uuid::Uuid;
+use sqlx::query_as;
 
-use crate::{domain::entity::user::User, persistence::get_connection};
+use crate::{
+    domain::entity::user::User,
+    persistence::{get_connection, users::UserRow},
+};
 
-pub enum FindByEmailUserError {
+pub enum FindByUserNameUserError {
     InvalidData,
     DatabaseError,
 }
 
-#[derive(FromRow)]
-struct UserRow {
-    id: Uuid,
-    email: String,
-    password_hash: String,
-    has_temporary_password: bool,
-}
-
-pub async fn find_user_by_email(email: &str) -> Result<Option<User>, FindByEmailUserError> {
+pub async fn find_user_by_user_name(
+    user_name: &str,
+) -> Result<Option<User>, FindByUserNameUserError> {
     let mut conn = get_connection()
         .await
-        .map_err(|_| FindByEmailUserError::DatabaseError)?;
+        .map_err(|_| FindByUserNameUserError::DatabaseError)?;
 
     let row: Option<UserRow> = query_as!(
         UserRow,
-        "SELECT id, email, password_hash, has_temporary_password FROM users WHERE email = $1",
-        email
+        "SELECT id, user_name, display_name, password_hash, has_temporary_password FROM users WHERE user_name = $1",
+        user_name
     )
     .fetch_optional(&mut *conn)
     .await
     .map_err(|error| {
         eprintln!("Unknown Database error: {:?}", error);
-        FindByEmailUserError::DatabaseError
+        FindByUserNameUserError::DatabaseError
     })?;
 
     if let Some(row) = row {
         Ok(Some(
             User::new(
                 row.id,
-                row.email,
+                row.user_name,
+                row.display_name,
                 row.password_hash,
                 row.has_temporary_password,
                 vec![],
             )
             .map_err(|error| {
                 eprintln!("Database row violated user invariants: {:?}", error);
-                FindByEmailUserError::InvalidData
+                FindByUserNameUserError::InvalidData
             })?,
         ))
     } else {

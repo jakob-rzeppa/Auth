@@ -4,13 +4,14 @@ use uuid::Uuid;
 #[derive(Debug)]
 pub enum UserError {
     EmptyId,
-    InvalidEmail,
+    InvalidUserName,
 }
 
 pub struct User {
     id: Uuid,
 
-    email: String,
+    user_name: String,
+    display_name: String,
 
     password_hash: String,
     has_temporary_password: bool,
@@ -21,7 +22,8 @@ pub struct User {
 impl User {
     pub fn new(
         id: Uuid,
-        email: String,
+        user_name: String,
+        display_name: String,
         password_hash: String,
         has_temporary_password: bool,
         privileges: Vec<Privilege>,
@@ -30,13 +32,14 @@ impl User {
             return Err(UserError::EmptyId);
         }
 
-        if email.is_empty() || !email.contains('@') {
-            return Err(UserError::InvalidEmail);
+        if !is_valid_user_name(&user_name) {
+            return Err(UserError::InvalidUserName);
         }
 
         Ok(Self {
             id,
-            email,
+            user_name,
+            display_name,
             password_hash,
             has_temporary_password,
             privileges,
@@ -47,18 +50,25 @@ impl User {
         self.id
     }
 
-    pub fn email(&self) -> &str {
-        &self.email
+    pub fn user_name(&self) -> &str {
+        &self.user_name
     }
 
-    pub fn set_email(&mut self, email: String) -> Result<(), UserError> {
-        if email.is_empty() || !email.contains('@') {
-            return Err(UserError::InvalidEmail);
+    pub fn set_user_name(&mut self, user_name: String) -> Result<(), UserError> {
+        if !is_valid_user_name(&user_name) {
+            return Err(UserError::InvalidUserName);
         }
 
-        self.email = email;
-
+        self.user_name = user_name;
         Ok(())
+    }
+
+    pub fn display_name(&self) -> &str {
+        &self.display_name
+    }
+
+    pub fn set_display_name(&mut self, display_name: String) {
+        self.display_name = display_name;
     }
 
     pub fn password_hash(&self) -> &str {
@@ -78,6 +88,10 @@ impl User {
     }
 }
 
+fn is_valid_user_name(user_name: &str) -> bool {
+    !user_name.trim().is_empty() && user_name.chars().all(|c| c == '.' || c.is_alphanumeric())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -86,7 +100,8 @@ mod tests {
     fn rejects_nil_id() {
         let result = User::new(
             Uuid::nil(),
-            "user@example.com".to_string(),
+            "john.doe".to_string(),
+            "John Doe".to_string(),
             "password_hash".to_string(),
             false,
             vec![],
@@ -95,38 +110,16 @@ mod tests {
     }
 
     #[test]
-    fn rejects_empty_email() {
-        let result = User::new(
-            Uuid::new_v4(),
-            "".to_string(),
-            "password_hash".to_string(),
-            false,
-            vec![],
-        );
-        assert!(matches!(result, Err(UserError::InvalidEmail)));
-    }
-
-    #[test]
-    fn rejects_email_without_at_symbol() {
-        let result = User::new(
-            Uuid::new_v4(),
-            "invalidemail.com".to_string(),
-            "password_hash".to_string(),
-            false,
-            vec![],
-        );
-        assert!(matches!(result, Err(UserError::InvalidEmail)));
-    }
-
-    #[test]
     fn creates_user_with_valid_inputs() {
         let id = Uuid::new_v4();
-        let email = "user@example.com".to_string();
+        let user_name = "john.doe".to_string();
+        let display_name = "John Doe".to_string();
         let privileges = vec![];
 
         let result = User::new(
             id,
-            email.clone(),
+            user_name.clone(),
+            display_name.clone(),
             "password_hash".to_string(),
             false,
             privileges.clone(),
@@ -135,75 +128,116 @@ mod tests {
         assert!(result.is_ok());
         let user = result.unwrap();
         assert_eq!(user.id(), id);
-        assert_eq!(user.email(), &email);
+        assert_eq!(user.user_name(), &user_name);
+        assert_eq!(user.display_name(), &display_name);
         assert_eq!(user.privileges(), &privileges);
     }
 
     #[test]
-    fn set_email_updates_email_with_valid_input() {
-        let mut user = User::new(
+    fn rejects_empty_user_name() {
+        let result = User::new(
             Uuid::new_v4(),
-            "old@example.com".to_string(),
+            "   ".to_string(),
+            "John Doe".to_string(),
             "password_hash".to_string(),
             false,
             vec![],
-        )
-        .unwrap();
+        );
 
-        let result = user.set_email("new@example.com".to_string());
-
-        assert!(result.is_ok());
-        assert_eq!(user.email(), "new@example.com");
+        assert!(matches!(result, Err(UserError::InvalidUserName)));
     }
 
     #[test]
-    fn set_email_rejects_empty_email() {
-        let mut user = User::new(
-            Uuid::new_v4(),
-            "old@example.com".to_string(),
-            "password_hash".to_string(),
-            false,
-            vec![],
-        )
-        .unwrap();
+    fn rejects_user_name_with_invalid_characters() {
+        let invalid_names = vec!["john doe", "john@doe", "john/doe", "john_doe"];
 
-        let result = user.set_email("".to_string());
-
-        assert!(matches!(result, Err(UserError::InvalidEmail)));
-        assert_eq!(user.email(), "old@example.com");
-    }
-
-    #[test]
-    fn set_email_rejects_email_without_at_symbol() {
-        let mut user = User::new(
-            Uuid::new_v4(),
-            "old@example.com".to_string(),
-            "password_hash".to_string(),
-            false,
-            vec![],
-        )
-        .unwrap();
-
-        let result = user.set_email("invalidemail.com".to_string());
-
-        assert!(matches!(result, Err(UserError::InvalidEmail)));
-        assert_eq!(user.email(), "old@example.com");
-    }
-
-    #[test]
-    fn accepts_valid_email_formats() {
-        let id = Uuid::new_v4();
-        let valid_emails = vec!["a@b.com", "test+tag@example.co.uk", "user.name@domain.com"];
-
-        for email in valid_emails {
+        for user_name in invalid_names {
             let result = User::new(
-                id,
-                email.to_string(),
+                Uuid::new_v4(),
+                user_name.to_string(),
+                "John Doe".to_string(),
                 "password_hash".to_string(),
                 false,
                 vec![],
             );
-            assert!(result.is_ok(), "should accept email: {}", email);
+
+            assert!(
+                matches!(result, Err(UserError::InvalidUserName)),
+                "should reject user_name: {}",
+                user_name
+            );
         }
+    }
+
+    #[test]
+    fn accepts_valid_user_name_formats() {
+        let valid_names = vec!["john.doe", "johndoe123", "jörg.müller", "jäger"];
+
+        for user_name in valid_names {
+            let result = User::new(
+                Uuid::new_v4(),
+                user_name.to_string(),
+                "John Doe".to_string(),
+                "password_hash".to_string(),
+                false,
+                vec![],
+            );
+
+            assert!(result.is_ok(), "should accept user_name: {}", user_name);
+        }
+    }
+
+    #[test]
+    fn set_user_name_updates_user_name_with_valid_input() {
+        let mut user = User::new(
+            Uuid::new_v4(),
+            "old.name".to_string(),
+            "John Doe".to_string(),
+            "password_hash".to_string(),
+            false,
+            vec![],
+        )
+        .unwrap();
+
+        let result = user.set_user_name("new.name".to_string());
+
+        assert!(result.is_ok());
+        assert_eq!(user.user_name(), "new.name");
+    }
+
+    #[test]
+    fn set_user_name_rejects_empty_user_name() {
+        let mut user = User::new(
+            Uuid::new_v4(),
+            "old.name".to_string(),
+            "John Doe".to_string(),
+            "password_hash".to_string(),
+            false,
+            vec![],
+        )
+        .unwrap();
+
+        let result = user.set_user_name("".to_string());
+
+        assert!(matches!(result, Err(UserError::InvalidUserName)));
+        assert_eq!(user.user_name(), "old.name");
+    }
+
+    #[test]
+    fn set_user_name_rejects_user_name_with_invalid_characters() {
+        let mut user = User::new(
+            Uuid::new_v4(),
+            "old.name".to_string(),
+            "John Doe".to_string(),
+            "password_hash".to_string(),
+            false,
+            vec![],
+        )
+        .unwrap();
+
+        let result = user.set_user_name("new name!".to_string());
+
+        assert!(matches!(result, Err(UserError::InvalidUserName)));
+        assert_eq!(user.user_name(), "old.name");
     }
 }

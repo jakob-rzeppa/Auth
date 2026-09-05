@@ -5,14 +5,15 @@ use crate::persistence::users::{
 
 pub enum UpdateUserError {
     UserNotFound,
-    InvalidEmailFormat,
-    EmailAlreadyExists,
+    InvalidUserName,
+    UserNameAlreadyExists,
     DatabaseError,
 }
 
 pub async fn update_user(
     user_id: uuid::Uuid,
-    new_email: Option<String>,
+    new_user_name: Option<String>,
+    new_display_name: Option<String>,
 ) -> Result<(), UpdateUserError> {
     let user = find_user_by_id(user_id)
         .await
@@ -22,14 +23,18 @@ pub async fn update_user(
         return Err(UpdateUserError::UserNotFound);
     };
 
-    if let Some(email) = new_email {
-        user.set_email(email)
-            .map_err(|_| UpdateUserError::InvalidEmailFormat)?;
+    if let Some(email) = new_user_name {
+        user.set_user_name(email)
+            .map_err(|_| UpdateUserError::InvalidUserName)?;
+    }
+
+    if let Some(display_name) = new_display_name {
+        user.set_display_name(display_name);
     }
 
     save_user(&user).await.map_err(|e| match e {
         SaveUserError::UserNotFound => UpdateUserError::DatabaseError,
-        SaveUserError::EmailAlreadyExists => UpdateUserError::EmailAlreadyExists,
+        SaveUserError::UserNameAlreadyExists => UpdateUserError::UserNameAlreadyExists,
         SaveUserError::DatabaseError => UpdateUserError::DatabaseError,
     })?;
 

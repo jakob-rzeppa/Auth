@@ -1,7 +1,7 @@
 use crate::{
     application::password::verify::{VerifyPasswordError, verify_password},
     domain::projection::user::FullUserProjection,
-    persistence::users::find_by_email::{FindByEmailUserError, find_user_by_email},
+    persistence::users::find_by_email::{FindByUserNameUserError, find_user_by_user_name},
 };
 
 pub enum AuthenticateUserError {
@@ -16,13 +16,15 @@ pub enum AuthenticateUserError {
 ///
 /// The `FullUserProjection` of the authenticated user and a boolean indicating whether the user must change their password.
 pub async fn authenticate_user(
-    email: &str,
+    user_name: &str,
     password: &str,
 ) -> Result<FullUserProjection, AuthenticateUserError> {
-    let user = find_user_by_email(email).await.map_err(|e| match e {
-        FindByEmailUserError::InvalidData => AuthenticateUserError::InternalError,
-        FindByEmailUserError::DatabaseError => AuthenticateUserError::InternalError,
-    })?;
+    let user = find_user_by_user_name(user_name)
+        .await
+        .map_err(|e| match e {
+            FindByUserNameUserError::InvalidData => AuthenticateUserError::InternalError,
+            FindByUserNameUserError::DatabaseError => AuthenticateUserError::InternalError,
+        })?;
 
     let Some(user) = user else {
         return Err(AuthenticateUserError::UserNotFound);
@@ -33,5 +35,5 @@ pub async fn authenticate_user(
         VerifyPasswordError::InvalidPassword => AuthenticateUserError::InvalidCredentials,
     })?;
 
-    Ok(FullUserProjection::from(user))
+    Ok(FullUserProjection::from(&user))
 }

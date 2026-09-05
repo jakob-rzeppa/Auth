@@ -23,14 +23,14 @@ pub mod request;
             examples(
                 ("invalid_user_id" = (summary = "Invalid user ID", value = json!({"error": "invalid_user_id", "error_description": "The provided user ID is invalid."}))),
                 ("invalid_request" = (summary = "Invalid request body", value = json!({"error": "invalid_request", "error_description": "Invalid request body."}))),
-                ("invalid_email" = (summary = "Empty email", value = json!({"error": "invalid_email", "error_description": "Email cannot be empty."}))),
+                ("invalid_user_name" = (summary = "Invalid User Name", value = json!({"error": "invalid_user_name", "error_description": "The user name is invalid."}))),
             ),
         ),
         (status = NOT_FOUND, description = "No user with this ID exists.", body = ErrorBody,
             example = json!({"error": "user_not_found", "error_description": "The user was not found."}),
         ),
-        (status = CONFLICT, description = "A user with this email already exists.", body = ErrorBody,
-            example = json!({"error": "email_already_exists", "error_description": "Email already exists."}),
+        (status = CONFLICT, description = "A user with this user name already exists.", body = ErrorBody,
+            example = json!({"error": "user_name_already_exists", "error_description": "User name already exists."}),
         ),
         (status = INTERNAL_SERVER_ERROR, description = "An internal server error occurred.", body = ErrorBody,
             example = json!({"error": "internal_server_error", "error_description": "An internal server error occurred."}),
@@ -39,18 +39,25 @@ pub mod request;
 )]
 pub async fn update_user_endpoint(
     Path(user_id): Path<String>,
-    UpdateUserRequest { email }: UpdateUserRequest,
+    UpdateUserRequest {
+        user_name,
+        display_name,
+    }: UpdateUserRequest,
 ) -> Result<Response, UpdateUserErrorResponse> {
     let Ok(user_id) = uuid::Uuid::parse_str(&user_id) else {
         return Err(UpdateUserErrorResponse::InvalidUserId);
     };
 
-    update_user(user_id, email).await.map_err(|err| match err {
-        UpdateUserError::UserNotFound => UpdateUserErrorResponse::UserNotFound,
-        UpdateUserError::InvalidEmailFormat => UpdateUserErrorResponse::InvalidEmail,
-        UpdateUserError::EmailAlreadyExists => UpdateUserErrorResponse::EmailAlreadyExists,
-        UpdateUserError::DatabaseError => UpdateUserErrorResponse::InternalServerError,
-    })?;
+    update_user(user_id, user_name, display_name)
+        .await
+        .map_err(|err| match err {
+            UpdateUserError::UserNotFound => UpdateUserErrorResponse::UserNotFound,
+            UpdateUserError::InvalidUserName => UpdateUserErrorResponse::InvalidUserName,
+            UpdateUserError::UserNameAlreadyExists => {
+                UpdateUserErrorResponse::UserNameAlreadyExists
+            }
+            UpdateUserError::DatabaseError => UpdateUserErrorResponse::InternalServerError,
+        })?;
 
     Ok(Response::builder()
         .status(204)

@@ -5,5 +5,5 @@ use crate::api::users::create::error_response::CreateUserErrorResponse;
 #[ApiRequest(CreateUserErrorResponse::InvalidBody)]
 #[derive(utoipa::ToSchema)]
 pub struct CreateUserRequest {
-    pub email: String,
+    pub user_name: String,
 }

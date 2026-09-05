@@ -36,8 +36,8 @@ pub async fn set_user_password(
     save_user(&user).await.map_err(|e| match e {
         SaveUserError::DatabaseError => SetUserPasswordError::DatabaseError,
         SaveUserError::UserNotFound => SetUserPasswordError::DatabaseError,
-        // This case should not happen since we just fetched the user, and don't change the email.
-        SaveUserError::EmailAlreadyExists => SetUserPasswordError::DatabaseError,
+        // This case should not happen since we just fetched the user, and don't change the user name.
+        SaveUserError::UserNameAlreadyExists => SetUserPasswordError::DatabaseError,
     })?;
 
     Ok(())

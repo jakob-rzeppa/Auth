@@ -4,7 +4,7 @@ use crate::{domain::entity::user::User, persistence::get_connection};
 
 pub enum SaveUserError {
     UserNotFound,
-    EmailAlreadyExists,
+    UserNameAlreadyExists,
     DatabaseError,
 }
 
@@ -18,8 +18,9 @@ pub async fn save_user(user: &User) -> Result<(), SaveUserError> {
         .map_err(|_| SaveUserError::DatabaseError)?;
 
     let result = query!(
-        "UPDATE users SET email = $1, password_hash = $2, has_temporary_password = $3 WHERE id = $4",
-        user.email(),
+        "UPDATE users SET user_name = $1, display_name = $2, password_hash = $3, has_temporary_password = $4 WHERE id = $5",
+        user.user_name(),
+        user.display_name(),
         user.password_hash(),
         user.has_temporary_password(),
         user.id()
@@ -33,7 +34,7 @@ pub async fn save_user(user: &User) -> Result<(), SaveUserError> {
             .as_deref()
             == Some(UNIQUE_VIOLATION)
         {
-            SaveUserError::EmailAlreadyExists
+            SaveUserError::UserNameAlreadyExists
         } else {
             eprintln!("Unknown Database error: {:?}", error);
             SaveUserError::DatabaseError
