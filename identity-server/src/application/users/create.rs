@@ -28,7 +28,6 @@ pub async fn create_user(user_name: String) -> Result<(Uuid, String), CreateUser
         display_name,
         password_hash,
         has_temporary_password,
-        vec![],
     )
     .map_err(|e| match e {
         UserError::EmptyId => unreachable!("Uuid::new_v4() does not create a nil Uuid."),

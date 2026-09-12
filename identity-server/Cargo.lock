@@ -792,7 +792,6 @@ dependencies = [
  "argon2",
  "axum",
  "fnmock",
- "privilege",
  "rand",
  "serde",
  "serde_json",
@@ -1029,15 +1028,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d83eb9bc6d8e5cf568e7a1101d60ee05e81ed50ea106026f3d18deeb046d7661"
 dependencies = [
  "zerovec",
-]
-
-[[package]]
-name = "privilege"
-version = "0.1.0"
-source = "git+https://github.com/jakob-rzeppa/Auth.git?branch=main#fcbdf32b0f2d7cbbb3c498719b1eec0b3f53cf35"
-dependencies = [
- "serde",
- "uuid",
 ]
 
 [[package]]

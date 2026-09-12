@@ -36,7 +36,6 @@ pub async fn find_user_by_id(user_id: Uuid) -> Result<Option<User>, FindByIdUser
                 row.display_name,
                 row.password_hash,
                 row.has_temporary_password,
-                vec![],
             )
             .map_err(|error| {
                 eprintln!("Database row violated user invariants: {:?}", error);

@@ -35,7 +35,6 @@ pub async fn find_all_users() -> Result<Vec<User>, FindAllUsersError> {
                 row.display_name,
                 row.password_hash,
                 row.has_temporary_password,
-                vec![],
             )
             .map_err(|error| {
                 eprintln!("Database row violated user invariants: {:?}", error);
