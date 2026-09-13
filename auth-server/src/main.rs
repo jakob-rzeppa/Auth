@@ -3,20 +3,12 @@ use std::net::SocketAddr;
 use axum::Router;
 use tokio::net::TcpListener;
 
-mod app_state;
-mod authorize;
-mod domain;
-mod error;
-mod persistence;
-mod service;
-
 #[tokio::main]
 async fn main() {
     println!("[STARTUP] Application starting...");
 
     println!("[STARTUP] Building router...");
-    let state = app_state::create_app_state();
-    let app = Router::new().merge(authorize::router()).with_state(state);
+    let app = Router::new();
 
     // Specify the address to bind to (0.0.0.0 to listen on all interfaces)
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
