@@ -2,7 +2,7 @@
 
 use utoipa::OpenApi;
 
-use crate::api::{health, users};
+use crate::api::{health, roles, users};
 
 /// Documents the `{"error": ..., "error_description": ...}` body produced by every
 /// `#[ApiErrorResponse]` enum. The enums themselves can't derive `ToSchema` - their
@@ -30,6 +30,7 @@ pub struct ErrorBody {
         users::authenticate::authenticate_user_endpoint,
         users::password::set::set_password_endpoint,
         users::password::reset::reset_password_endpoint,
+        roles::query::query_roles_endpoint
     ),
     components(schemas(ErrorBody))
 )]

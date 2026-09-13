@@ -1,10 +1,7 @@
 use sqlx::prelude::FromRow;
 use uuid::Uuid;
 
-use crate::{
-    domain::entity::user::{User, UserError},
-    persistence::roles::find_by_ids::find_roles_by_ids,
-};
+use crate::{domain::entity::user::User, persistence::roles::find_by_ids::find_roles_by_ids};
 
 pub mod find_all;
 pub mod find_by_email;
@@ -27,8 +24,7 @@ struct UserRow {
 #[derive(Debug)]
 enum UserRowError {
     /// The row references a role id that the role store does not know.
-    UnknownRole(Uuid),
-    ViolatedUserInvariant(UserError),
+    ViolatedUserInvariant,
 }
 
 impl UserRow {
@@ -43,7 +39,7 @@ impl UserRow {
             self.has_temporary_password,
             roles,
         )
-        .map_err(UserRowError::ViolatedUserInvariant)
+        .map_err(|_| UserRowError::ViolatedUserInvariant)
     }
 }
 
