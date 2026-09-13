@@ -19,7 +19,7 @@ pub async fn find_user_by_user_name(
 
     let row: Option<UserRow> = query_as!(
         UserRow,
-        "SELECT id, user_name, display_name, password_hash, has_temporary_password FROM users WHERE user_name = $1",
+        "SELECT id, user_name, display_name, password_hash, has_temporary_password, roles FROM users WHERE user_name = $1",
         user_name
     )
     .fetch_optional(&mut *conn)
@@ -30,19 +30,10 @@ pub async fn find_user_by_user_name(
     })?;
 
     if let Some(row) = row {
-        Ok(Some(
-            User::new(
-                row.id,
-                row.user_name,
-                row.display_name,
-                row.password_hash,
-                row.has_temporary_password,
-            )
-            .map_err(|error| {
-                eprintln!("Database row violated user invariants: {:?}", error);
-                FindByUserNameUserError::InvalidData
-            })?,
-        ))
+        Ok(Some(row.into_user().map_err(|error| {
+            eprintln!("Invalid user row: {:?}", error);
+            FindByUserNameUserError::InvalidData
+        })?))
     } else {
         Ok(None)
     }

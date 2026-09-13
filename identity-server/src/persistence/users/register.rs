@@ -1,6 +1,9 @@
 use sqlx::query;
 
-use crate::{domain::entity::user::User, persistence::get_connection};
+use crate::{
+    domain::entity::user::User,
+    persistence::{get_connection, users::role_ids},
+};
 
 pub enum RegisterUserError {
     UserNameAlreadyExists,
@@ -15,8 +18,8 @@ pub async fn register_user(user: &User) -> Result<(), RegisterUserError> {
         .map_err(|_| RegisterUserError::DatabaseError)?;
 
     query!(
-        "INSERT INTO users (id, user_name, display_name, password_hash, has_temporary_password) VALUES ($1, $2, $3, $4, $5)",
-        user.id(), user.user_name(), user.display_name(), user.password_hash(), user.has_temporary_password())
+        "INSERT INTO users (id, user_name, display_name, password_hash, has_temporary_password, roles) VALUES ($1, $2, $3, $4, $5, $6)",
+        user.id(), user.user_name(), user.display_name(), user.password_hash(), user.has_temporary_password(), &role_ids(user))
         .execute(&mut *conn)
         .await
         .map_err(|error| {

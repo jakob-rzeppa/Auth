@@ -1,4 +1,5 @@
 use api_macros::ApiRequest;
+use uuid::Uuid;
 
 use crate::api::users::update::error_response::UpdateUserErrorResponse;
 
@@ -7,4 +8,5 @@ use crate::api::users::update::error_response::UpdateUserErrorResponse;
 pub struct UpdateUserRequest {
     pub user_name: Option<String>,
     pub display_name: Option<String>,
+    pub role_ids: Option<Vec<Uuid>>,
 }

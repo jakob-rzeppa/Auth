@@ -30,8 +30,8 @@ impl Role {
         })
     }
 
-    pub fn id(&self) -> Uuid {
-        self.id
+    pub fn id(&self) -> &Uuid {
+        &self.id
     }
 
     pub fn name(&self) -> &str {

@@ -42,13 +42,14 @@ pub async fn update_user_endpoint(
     UpdateUserRequest {
         user_name,
         display_name,
+        role_ids,
     }: UpdateUserRequest,
 ) -> Result<Response, UpdateUserErrorResponse> {
     let Ok(user_id) = uuid::Uuid::parse_str(&user_id) else {
         return Err(UpdateUserErrorResponse::InvalidUserId);
     };
 
-    update_user(user_id, user_name, display_name)
+    update_user(user_id, user_name, display_name, role_ids)
         .await
         .map_err(|err| match err {
             UpdateUserError::UserNotFound => UpdateUserErrorResponse::UserNotFound,

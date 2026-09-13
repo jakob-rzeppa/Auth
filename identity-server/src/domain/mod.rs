@@ -4,5 +4,6 @@ pub mod entity {
 }
 
 pub mod projection {
+    pub mod role;
     pub mod user;
 }

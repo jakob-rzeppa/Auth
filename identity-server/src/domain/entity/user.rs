@@ -1,5 +1,7 @@
 use uuid::Uuid;
 
+use crate::domain::entity::role::Role;
+
 #[derive(Debug)]
 pub enum UserError {
     EmptyId,
@@ -14,6 +16,8 @@ pub struct User {
 
     password_hash: String,
     has_temporary_password: bool,
+
+    roles: Vec<Role>,
 }
 
 impl User {
@@ -23,6 +27,7 @@ impl User {
         display_name: String,
         password_hash: String,
         has_temporary_password: bool,
+        roles: Vec<Role>,
     ) -> Result<Self, UserError> {
         if id.is_nil() {
             return Err(UserError::EmptyId);
@@ -38,6 +43,7 @@ impl User {
             display_name,
             password_hash,
             has_temporary_password,
+            roles,
         })
     }
 
@@ -77,6 +83,14 @@ impl User {
     pub fn has_temporary_password(&self) -> bool {
         self.has_temporary_password
     }
+
+    pub fn roles(&self) -> &[Role] {
+        &self.roles
+    }
+
+    pub fn set_roles(&mut self, roles: Vec<Role>) {
+        self.roles = roles;
+    }
 }
 
 fn is_valid_user_name(user_name: &str) -> bool {
@@ -95,6 +109,7 @@ mod tests {
             "John Doe".to_string(),
             "password_hash".to_string(),
             false,
+            vec![],
         );
         assert!(matches!(result, Err(UserError::EmptyId)));
     }
@@ -111,6 +126,7 @@ mod tests {
             display_name.clone(),
             "password_hash".to_string(),
             false,
+            vec![],
         );
 
         assert!(result.is_ok());
@@ -128,6 +144,7 @@ mod tests {
             "John Doe".to_string(),
             "password_hash".to_string(),
             false,
+            vec![],
         );
 
         assert!(matches!(result, Err(UserError::InvalidUserName)));
@@ -144,6 +161,7 @@ mod tests {
                 "John Doe".to_string(),
                 "password_hash".to_string(),
                 false,
+                vec![],
             );
 
             assert!(
@@ -165,6 +183,7 @@ mod tests {
                 "John Doe".to_string(),
                 "password_hash".to_string(),
                 false,
+                vec![],
             );
 
             assert!(result.is_ok(), "should accept user_name: {}", user_name);
@@ -179,6 +198,7 @@ mod tests {
             "John Doe".to_string(),
             "password_hash".to_string(),
             false,
+            vec![],
         )
         .unwrap();
 
@@ -196,6 +216,7 @@ mod tests {
             "John Doe".to_string(),
             "password_hash".to_string(),
             false,
+            vec![],
         )
         .unwrap();
 
@@ -213,6 +234,7 @@ mod tests {
             "John Doe".to_string(),
             "password_hash".to_string(),
             false,
+            vec![],
         )
         .unwrap();
 

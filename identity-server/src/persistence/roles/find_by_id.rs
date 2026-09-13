@@ -44,7 +44,7 @@ mod tests {
         let role = role.unwrap();
         assert_eq!(
             role.id(),
-            Uuid::parse_str("00000000-0000-0000-0000-000000000001").unwrap()
+            &Uuid::parse_str("00000000-0000-0000-0000-000000000001").unwrap()
         );
         assert_eq!(role.name(), "Admin");
         assert_eq!(role.description(), "Administrator role");

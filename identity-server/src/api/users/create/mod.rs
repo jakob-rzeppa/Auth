@@ -36,18 +36,25 @@ pub mod response;
 )]
 #[axum::debug_handler]
 pub async fn create_user_endpoint(
-    CreateUserRequest { user_name }: CreateUserRequest,
+    CreateUserRequest {
+        user_name,
+        role_ids,
+    }: CreateUserRequest,
 ) -> Result<CreateUserResponse, CreateUserErrorResponse> {
-    let (id, temporary_password) = create_user(user_name).await.map_err(|e| match e {
-        CreateUserApplicationError::InvalidUserName => CreateUserErrorResponse::InvalidUserName,
-        CreateUserApplicationError::UserNameAlreadyExists => {
-            CreateUserErrorResponse::UserNameAlreadyExists
-        }
-        CreateUserApplicationError::DatabaseError => CreateUserErrorResponse::InternalServerError,
-        CreateUserApplicationError::PasswordHashingError => {
-            CreateUserErrorResponse::InternalServerError
-        }
-    })?;
+    let (id, temporary_password) = create_user(user_name, role_ids)
+        .await
+        .map_err(|e| match e {
+            CreateUserApplicationError::InvalidUserName => CreateUserErrorResponse::InvalidUserName,
+            CreateUserApplicationError::UserNameAlreadyExists => {
+                CreateUserErrorResponse::UserNameAlreadyExists
+            }
+            CreateUserApplicationError::DatabaseError => {
+                CreateUserErrorResponse::InternalServerError
+            }
+            CreateUserApplicationError::PasswordHashingError => {
+                CreateUserErrorResponse::InternalServerError
+            }
+        })?;
 
     Ok(CreateUserResponse {
         id,

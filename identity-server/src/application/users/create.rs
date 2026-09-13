@@ -3,7 +3,10 @@ use uuid::Uuid;
 use crate::{
     application::password::{hash::hash_password, temporary::generate_temporary_password},
     domain::entity::user::{User, UserError},
-    persistence::users::register::{RegisterUserError, register_user},
+    persistence::{
+        roles::find_by_ids::find_roles_by_ids,
+        users::register::{RegisterUserError, register_user},
+    },
 };
 
 pub enum CreateUserApplicationError {
@@ -14,7 +17,10 @@ pub enum CreateUserApplicationError {
 }
 
 /// Creates a new user with the given user_name and display_name and returns the user's ID and a temporary password if successful.
-pub async fn create_user(user_name: String) -> Result<(Uuid, String), CreateUserApplicationError> {
+pub async fn create_user(
+    user_name: String,
+    role_ids: Vec<Uuid>,
+) -> Result<(Uuid, String), CreateUserApplicationError> {
     let has_temporary_password = true;
     let temporary_password = generate_temporary_password();
     let password_hash = hash_password(&temporary_password)
@@ -22,12 +28,15 @@ pub async fn create_user(user_name: String) -> Result<(Uuid, String), CreateUser
 
     let display_name = build_initial_display_name(&user_name);
 
+    let roles = find_roles_by_ids(&role_ids);
+
     let user = User::new(
         Uuid::new_v4(),
         user_name,
         display_name,
         password_hash,
         has_temporary_password,
+        roles,
     )
     .map_err(|e| match e {
         UserError::EmptyId => unreachable!("Uuid::new_v4() does not create a nil Uuid."),

@@ -18,7 +18,7 @@ pub async fn find_user_by_id(user_id: Uuid) -> Result<Option<User>, FindByIdUser
 
     let row: Option<UserRow> = query_as!(
         UserRow,
-        "SELECT id, user_name, display_name, password_hash, has_temporary_password FROM users WHERE id = $1",
+        "SELECT id, user_name, display_name, password_hash, has_temporary_password, roles FROM users WHERE id = $1",
         user_id
     )
     .fetch_optional(&mut *conn)
@@ -29,19 +29,10 @@ pub async fn find_user_by_id(user_id: Uuid) -> Result<Option<User>, FindByIdUser
     })?;
 
     if let Some(row) = row {
-        Ok(Some(
-            User::new(
-                row.id,
-                row.user_name,
-                row.display_name,
-                row.password_hash,
-                row.has_temporary_password,
-            )
-            .map_err(|error| {
-                eprintln!("Database row violated user invariants: {:?}", error);
-                FindByIdUserError::InvalidData
-            })?,
-        ))
+        Ok(Some(row.into_user().map_err(|error| {
+            eprintln!("Invalid user row: {:?}", error);
+            FindByIdUserError::InvalidData
+        })?))
     } else {
         Ok(None)
     }

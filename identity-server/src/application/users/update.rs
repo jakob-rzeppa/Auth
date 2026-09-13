@@ -1,6 +1,11 @@
-use crate::persistence::users::{
-    find_by_id::find_user_by_id,
-    save::{SaveUserError, save_user},
+use uuid::Uuid;
+
+use crate::persistence::{
+    roles::find_by_ids::find_roles_by_ids,
+    users::{
+        find_by_id::find_user_by_id,
+        save::{SaveUserError, save_user},
+    },
 };
 
 pub enum UpdateUserError {
@@ -11,9 +16,10 @@ pub enum UpdateUserError {
 }
 
 pub async fn update_user(
-    user_id: uuid::Uuid,
+    user_id: Uuid,
     new_user_name: Option<String>,
     new_display_name: Option<String>,
+    role_ids: Option<Vec<Uuid>>,
 ) -> Result<(), UpdateUserError> {
     let user = find_user_by_id(user_id)
         .await
@@ -30,6 +36,12 @@ pub async fn update_user(
 
     if let Some(display_name) = new_display_name {
         user.set_display_name(display_name);
+    }
+
+    if let Some(role_ids) = role_ids {
+        let roles = find_roles_by_ids(&role_ids);
+
+        user.set_roles(roles);
     }
 
     save_user(&user).await.map_err(|e| match e {

@@ -18,7 +18,7 @@ pub async fn find_all_users() -> Result<Vec<User>, FindAllUsersError> {
 
     let row: Vec<UserRow> = query_as!(
         UserRow,
-        "SELECT id, user_name, display_name, password_hash, has_temporary_password FROM users"
+        "SELECT id, user_name, display_name, password_hash, has_temporary_password, roles FROM users"
     )
     .fetch_all(&mut *conn)
     .await
@@ -29,15 +29,8 @@ pub async fn find_all_users() -> Result<Vec<User>, FindAllUsersError> {
 
     row.into_iter()
         .map(|row| {
-            User::new(
-                row.id,
-                row.user_name,
-                row.display_name,
-                row.password_hash,
-                row.has_temporary_password,
-            )
-            .map_err(|error| {
-                eprintln!("Database row violated user invariants: {:?}", error);
+            row.into_user().map_err(|error| {
+                eprintln!("Invalid user row: {:?}", error);
                 FindAllUsersError::InvalidData
             })
         })

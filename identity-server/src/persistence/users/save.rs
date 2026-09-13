@@ -1,6 +1,9 @@
 use sqlx::query;
 
-use crate::{domain::entity::user::User, persistence::get_connection};
+use crate::{
+    domain::entity::user::User,
+    persistence::{get_connection, users::role_ids},
+};
 
 pub enum SaveUserError {
     UserNotFound,
@@ -18,11 +21,12 @@ pub async fn save_user(user: &User) -> Result<(), SaveUserError> {
         .map_err(|_| SaveUserError::DatabaseError)?;
 
     let result = query!(
-        "UPDATE users SET user_name = $1, display_name = $2, password_hash = $3, has_temporary_password = $4 WHERE id = $5",
+        "UPDATE users SET user_name = $1, display_name = $2, password_hash = $3, has_temporary_password = $4, roles = $5 WHERE id = $6",
         user.user_name(),
         user.display_name(),
         user.password_hash(),
         user.has_temporary_password(),
+        &role_ids(user),
         user.id()
     )
     .execute(&mut *conn)
