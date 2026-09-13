@@ -1,4 +1,5 @@
 pub mod entity {
+    pub mod role;
     pub mod user;
 }
 

@@ -4,6 +4,7 @@ use sqlx::{Pool, Postgres, pool::PoolConnection};
 
 use crate::config::CONFIG;
 
+pub mod roles;
 pub mod users;
 
 static DB_POOL: LazyLock<Pool<Postgres>> = LazyLock::new(|| {

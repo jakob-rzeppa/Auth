@@ -1,0 +1,7 @@
+roles:
+  - id: "3f29a1d2-8b4e-4c1a-9f3d-1a2b3c4d5e6f"
+    name: "Admin"
+    description: "Administrator role with full access"
+  - id: "4e5f6a7b-8c9d-0e1f-2a3b-4c5d6e7f8g9h"
+    name: "User"
+    description: "Regular user role with limited access"
