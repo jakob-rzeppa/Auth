@@ -1,0 +1,24 @@
+# Topology only. Nothing here publishes a host port, so the stack can be brought
+# up more than once side by side under different project names.
+# Host ports live in docker-compose.dev.yml.
+services:
+  auth-server-redis:
+    image: redis:8-alpine
+    networks:
+      - auth-server-internal
+    volumes:
+      - auth-server-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  # internal: no route off this network. Redis is reachable only from
+  # containers attached to it, and has no outbound internet access itself.
+  auth-server-internal:
+    internal: true
+
+volumes:
+  auth-server-redis-data:

@@ -3,6 +3,7 @@ use std::net::SocketAddr;
 use tokio::net::TcpListener;
 
 mod application;
+mod config;
 mod domain;
 mod persistence;
 mod web;

@@ -5,3 +5,7 @@ include:
       - identity-server/docker-compose.yml
       - identity-server/docker-compose.dev.yml
     env_file: identity-server/.env
+  - path:
+      - auth-server/docker-compose.yml
+      - auth-server/docker-compose.dev.yml
+    env_file: auth-server/.env
