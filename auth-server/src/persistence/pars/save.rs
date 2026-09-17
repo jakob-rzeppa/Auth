@@ -1,7 +1,8 @@
 use redis::AsyncCommands;
 
 use crate::{
-    domain::entity::par::PushedAuthorizationRequest, persistence::redis::get_redis_connection,
+    domain::entity::authorization_request::AuthorizationRequest,
+    persistence::redis::get_redis_connection,
 };
 
 pub enum SaveParError {
@@ -9,9 +10,10 @@ pub enum SaveParError {
     DatabaseError,
 }
 
-/// Save a PAR, to be automatically deleted by redis after `ttl_seconds`.
+/// Save a pushed authorization request, to be automatically deleted by redis after `ttl_seconds`.
 pub async fn save_par(
-    par: PushedAuthorizationRequest,
+    request_uri: &str,
+    par: AuthorizationRequest,
     ttl_seconds: u64,
 ) -> Result<(), SaveParError> {
     let mut conn = get_redis_connection()
@@ -23,7 +25,7 @@ pub async fn save_par(
         SaveParError::SerializationError
     })?;
 
-    conn.set_ex::<_, _, ()>(key(par.request_uri()), value, ttl_seconds)
+    conn.set_ex::<_, _, ()>(key(request_uri), value, ttl_seconds)
         .await
         .map_err(|error| {
             eprintln!("Failed to save PAR: {:?}", error);
