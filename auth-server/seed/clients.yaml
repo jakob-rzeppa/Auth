@@ -1,5 +1,5 @@
 clients:
-  - id: 1
+  - id: 75937f94-eaa9-485c-997e-f93f339f5f59
     client_name: My Client
     redirect_uris:
       - http://example.com
