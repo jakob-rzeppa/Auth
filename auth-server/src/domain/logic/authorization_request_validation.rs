@@ -56,12 +56,12 @@ pub fn validate_authorization_request_against_client(
     }
 
     // ==== scope ====
-    let Some(scopes) = request.scopes() else {
+    let Some(scope) = request.scope() else {
         return Err(AuthorizationError::Redirectable(
             RedirectableError::InvalidScope,
         ));
     };
-    if !client.has_scopes(scopes) {
+    if !client.has_scope(scope) {
         return Err(AuthorizationError::Redirectable(
             RedirectableError::InvalidScope,
         ));
@@ -125,7 +125,7 @@ mod tests {
             client_id,
             Some("https://example.com/callback".to_string()),
             Some("code".to_string()),
-            Some(vec!["read".to_string()]),
+            Some("read".to_string()),
             Some("some-state".to_string()),
             Some("some-code-challenge".to_string()),
             Some("S256".to_string()),
@@ -165,7 +165,7 @@ mod tests {
             client_id,
             Some("https://example.com/callback".to_string()),
             Some("token".to_string()),
-            Some(vec!["read".to_string()]),
+            Some("read".to_string()),
             Some("some-state".to_string()),
             Some("some-code-challenge".to_string()),
             Some("S256".to_string()),
@@ -187,7 +187,7 @@ mod tests {
             client_id,
             Some("https://example.com/callback".to_string()),
             None,
-            Some(vec!["read".to_string()]),
+            Some("read".to_string()),
             Some("some-state".to_string()),
             Some("some-code-challenge".to_string()),
             Some("S256".to_string()),
@@ -231,7 +231,7 @@ mod tests {
             client_id,
             Some("https://example.com/callback".to_string()),
             Some("code".to_string()),
-            Some(vec!["read".to_string()]),
+            Some("read".to_string()),
             None,
             Some("some-code-challenge".to_string()),
             Some("S256".to_string()),
@@ -253,7 +253,7 @@ mod tests {
             client_id,
             Some("https://example.com/callback".to_string()),
             Some("code".to_string()),
-            Some(vec!["read".to_string()]),
+            Some("read".to_string()),
             Some("some-state".to_string()),
             Some("some-code-challenge".to_string()),
             None,
@@ -275,7 +275,7 @@ mod tests {
             client_id,
             Some("https://example.com/callback".to_string()),
             Some("code".to_string()),
-            Some(vec!["read".to_string()]),
+            Some("read".to_string()),
             Some("some-state".to_string()),
             None,
             Some("S256".to_string()),
@@ -297,7 +297,7 @@ mod tests {
             client_id,
             None,
             Some("code".to_string()),
-            Some(vec!["read".to_string()]),
+            Some("read".to_string()),
             Some("some-state".to_string()),
             Some("some-code-challenge".to_string()),
             Some("S256".to_string()),
@@ -319,7 +319,7 @@ mod tests {
             client_id,
             Some("https://evil.example.com/callback".to_string()),
             Some("code".to_string()),
-            Some(vec!["read".to_string()]),
+            Some("read".to_string()),
             Some("some-state".to_string()),
             Some("some-code-challenge".to_string()),
             Some("S256".to_string()),
@@ -341,7 +341,7 @@ mod tests {
             client_id,
             Some("https://example.com/callback".to_string()),
             Some("code".to_string()),
-            Some(vec!["delete".to_string()]),
+            Some("delete".to_string()),
             Some("some-state".to_string()),
             Some("some-code-challenge".to_string()),
             Some("S256".to_string()),
@@ -363,7 +363,7 @@ mod tests {
             client_id,
             Some("https://example.com/callback".to_string()),
             Some("code".to_string()),
-            Some(vec!["read".to_string()]),
+            Some("read".to_string()),
             Some("".to_string()),
             Some("some-code-challenge".to_string()),
             Some("S256".to_string()),
@@ -385,7 +385,7 @@ mod tests {
             client_id,
             Some("https://example.com/callback".to_string()),
             Some("code".to_string()),
-            Some(vec!["read".to_string()]),
+            Some("read".to_string()),
             Some("some-state".to_string()),
             Some("some-code-challenge".to_string()),
             Some("plain".to_string()),
@@ -407,7 +407,7 @@ mod tests {
             client_id,
             Some("https://example.com/callback".to_string()),
             Some("code".to_string()),
-            Some(vec!["read".to_string()]),
+            Some("read".to_string()),
             Some("some-state".to_string()),
             Some("".to_string()),
             Some("S256".to_string()),

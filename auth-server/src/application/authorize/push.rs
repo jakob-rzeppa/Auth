@@ -56,14 +56,11 @@ pub async fn validate_and_register_authorize_push(
         FatalAuthorizePushError::ClientNotFound,
     ))?;
 
-    let scopes: Option<Vec<String>> =
-        scope.map(|s| s.split_whitespace().map(|s| s.to_string()).collect());
-
     let request = AuthorizationRequest::new(
         client_id,
         redirect_uri,
         response_type,
-        scopes,
+        scope,
         state,
         code_challenge,
         code_challenge_method,

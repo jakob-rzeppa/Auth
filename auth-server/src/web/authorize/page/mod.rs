@@ -46,7 +46,7 @@ pub async fn authorize_page_endpoint(
 
     let client = find_client_by_id(&client_id).ok_or(AuthorizePageErrorResponse::ClientNotFound)?;
 
-    let scope = par.scopes().unwrap_or_default().join(" ");
+    let scope = par.scope().unwrap_or_default().to_string();
 
     Ok(AuthorizePageResponse {
         client_name: client.client_name().to_string(),

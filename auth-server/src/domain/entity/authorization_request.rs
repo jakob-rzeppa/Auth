@@ -12,7 +12,7 @@ pub struct AuthorizationRequest {
 
     redirect_uri: Option<String>,
     response_type: Option<String>,
-    scopes: Option<Vec<String>>,
+    scope: Option<String>,
 
     state: Option<String>,
     code_challenge: Option<String>,
@@ -24,7 +24,7 @@ impl AuthorizationRequest {
         client_id: Uuid,
         redirect_uri: Option<String>,
         response_type: Option<String>,
-        scopes: Option<Vec<String>>,
+        scope: Option<String>,
         state: Option<String>,
         code_challenge: Option<String>,
         code_challenge_method: Option<String>,
@@ -33,7 +33,7 @@ impl AuthorizationRequest {
             client_id,
             redirect_uri,
             response_type,
-            scopes,
+            scope,
             state,
             code_challenge,
             code_challenge_method,
@@ -52,8 +52,8 @@ impl AuthorizationRequest {
         self.response_type.as_deref()
     }
 
-    pub fn scopes(&self) -> Option<&[String]> {
-        self.scopes.as_deref()
+    pub fn scope(&self) -> Option<&str> {
+        self.scope.as_deref()
     }
 
     pub fn state(&self) -> Option<&str> {

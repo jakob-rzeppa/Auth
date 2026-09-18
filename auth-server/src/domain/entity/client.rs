@@ -8,7 +8,7 @@ pub struct Client {
 
     redirect_uris: Vec<String>,
 
-    scopes: Vec<String>,
+    allowed_scopes: Vec<String>,
 }
 
 impl Client {
@@ -16,13 +16,13 @@ impl Client {
         id: Uuid,
         client_name: String,
         redirect_uris: Vec<String>,
-        scopes: Vec<String>,
+        allowed_scopes: Vec<String>,
     ) -> Self {
         Self {
             id,
             client_name,
             redirect_uris,
-            scopes,
+            allowed_scopes,
         }
     }
 
@@ -38,8 +38,13 @@ impl Client {
         self.redirect_uris.contains(&redirect_uri.to_string())
     }
 
-    pub fn has_scopes(&self, scopes: &[String]) -> bool {
-        scopes.iter().all(|scope| self.scopes.contains(scope))
+    pub fn has_scope(&self, scopes: &str) -> bool {
+        let requested_scopes: Vec<&str> = scopes.split_whitespace().collect();
+        requested_scopes.iter().all(|requested| {
+            self.allowed_scopes
+                .iter()
+                .any(|allowed| allowed == requested)
+        })
     }
 }
 
@@ -69,8 +74,9 @@ mod tests {
             vec!["read".to_string(), "write".to_string()],
         );
 
-        assert!(client.has_scopes(&vec!["read".to_string()]));
-        assert!(client.has_scopes(&vec!["read".to_string(), "write".to_string()]));
-        assert!(!client.has_scopes(&vec!["delete".to_string()]));
+        assert!(client.has_scope("read"));
+        assert!(client.has_scope("read write"));
+        assert!(!client.has_scope("delete"));
+        assert!(!client.has_scope("read delete"));
     }
 }
