@@ -1,5 +1,7 @@
+mod authorize;
+
 use axum::Router;
 
 pub fn router() -> Router {
-    Router::new()
+    Router::new().merge(authorize::router())
 }
