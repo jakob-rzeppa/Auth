@@ -21,16 +21,6 @@ pub enum AuthorizationError {
     Redirectable(RedirectableAuthorizationError),
 }
 
-impl AuthorizationError {
-    pub fn fatal(err: FatalAuthorizationError) -> Self {
-        AuthorizationError::Fatal(err)
-    }
-
-    pub fn redirectable(err: RedirectableAuthorizationError) -> Self {
-        AuthorizationError::Redirectable(err)
-    }
-}
-
 pub fn validate_authorization_request_against_client(
     request: &AuthorizationRequest,
     client: &Client,
@@ -40,75 +30,75 @@ pub fn validate_authorization_request_against_client(
 
     // ==== client id ====
     if request.client_id() != client.id() {
-        return Err(AuthorizationError::fatal(FatalError::ClientIdMismatch));
+        return Err(AuthorizationError::Fatal(FatalError::ClientIdMismatch));
     }
 
     // ==== redirect_uri ====
     let Some(redirect_uri) = request.redirect_uri() else {
-        return Err(AuthorizationError::fatal(FatalError::InvalidRedirectUri));
+        return Err(AuthorizationError::Fatal(FatalError::InvalidRedirectUri));
     };
     if !client.has_redirect_uri(redirect_uri) {
-        return Err(AuthorizationError::fatal(FatalError::InvalidRedirectUri));
+        return Err(AuthorizationError::Fatal(FatalError::InvalidRedirectUri));
     }
 
     // Only allow error redirects from here on, since the client_id and redirect_uri are valid.
 
     // ==== response type ====
     let Some(response_type) = request.response_type() else {
-        return Err(AuthorizationError::redirectable(
+        return Err(AuthorizationError::Redirectable(
             RedirectableError::InvalidResponseType,
         ));
     };
     if response_type != "code" {
-        return Err(AuthorizationError::redirectable(
+        return Err(AuthorizationError::Redirectable(
             RedirectableError::InvalidResponseType,
         ));
     }
 
     // ==== scope ====
     let Some(scopes) = request.scopes() else {
-        return Err(AuthorizationError::redirectable(
+        return Err(AuthorizationError::Redirectable(
             RedirectableError::InvalidScope,
         ));
     };
     if !client.has_scopes(scopes) {
-        return Err(AuthorizationError::redirectable(
+        return Err(AuthorizationError::Redirectable(
             RedirectableError::InvalidScope,
         ));
     }
 
     // ==== state ====
     let Some(state) = request.state() else {
-        return Err(AuthorizationError::redirectable(
+        return Err(AuthorizationError::Redirectable(
             RedirectableError::InvalidState,
         ));
     };
     if state.is_empty() {
-        return Err(AuthorizationError::redirectable(
+        return Err(AuthorizationError::Redirectable(
             RedirectableError::InvalidState,
         ));
     }
 
     // ==== code_challenge_method ====
     let Some(code_challenge_method) = request.code_challenge_method() else {
-        return Err(AuthorizationError::redirectable(
+        return Err(AuthorizationError::Redirectable(
             RedirectableError::InvalidCodeChallengeMethod,
         ));
     };
     if code_challenge_method != "S256" {
-        return Err(AuthorizationError::redirectable(
+        return Err(AuthorizationError::Redirectable(
             RedirectableError::InvalidCodeChallengeMethod,
         ));
     }
 
     // === code_challenge ====
     let Some(code_challenge) = request.code_challenge() else {
-        return Err(AuthorizationError::redirectable(
+        return Err(AuthorizationError::Redirectable(
             RedirectableError::InvalidCodeChallenge,
         ));
     };
     if code_challenge.is_empty() {
-        return Err(AuthorizationError::redirectable(
+        return Err(AuthorizationError::Redirectable(
             RedirectableError::InvalidCodeChallenge,
         ));
     }
@@ -161,7 +151,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationError::fatal(
+            Err(AuthorizationError::Fatal(
                 FatalAuthorizationError::ClientIdMismatch
             ))
         );
@@ -183,7 +173,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationError::redirectable(
+            Err(AuthorizationError::Redirectable(
                 RedirectableAuthorizationError::InvalidResponseType
             ))
         );
@@ -205,7 +195,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationError::redirectable(
+            Err(AuthorizationError::Redirectable(
                 RedirectableAuthorizationError::InvalidResponseType
             ))
         );
@@ -227,7 +217,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationError::redirectable(
+            Err(AuthorizationError::Redirectable(
                 RedirectableAuthorizationError::InvalidScope
             ))
         );
@@ -249,7 +239,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationError::redirectable(
+            Err(AuthorizationError::Redirectable(
                 RedirectableAuthorizationError::InvalidState
             ))
         );
@@ -271,7 +261,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationError::redirectable(
+            Err(AuthorizationError::Redirectable(
                 RedirectableAuthorizationError::InvalidCodeChallengeMethod
             ))
         );
@@ -293,7 +283,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationError::redirectable(
+            Err(AuthorizationError::Redirectable(
                 RedirectableAuthorizationError::InvalidCodeChallenge
             ))
         );
@@ -315,7 +305,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationError::fatal(
+            Err(AuthorizationError::Fatal(
                 FatalAuthorizationError::InvalidRedirectUri
             ))
         );
@@ -337,7 +327,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationError::fatal(
+            Err(AuthorizationError::Fatal(
                 FatalAuthorizationError::InvalidRedirectUri
             ))
         );
@@ -359,7 +349,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationError::redirectable(
+            Err(AuthorizationError::Redirectable(
                 RedirectableAuthorizationError::InvalidScope
             ))
         );
@@ -381,7 +371,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationError::redirectable(
+            Err(AuthorizationError::Redirectable(
                 RedirectableAuthorizationError::InvalidState
             ))
         );
@@ -403,7 +393,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationError::redirectable(
+            Err(AuthorizationError::Redirectable(
                 RedirectableAuthorizationError::InvalidCodeChallengeMethod
             ))
         );
@@ -425,7 +415,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationError::redirectable(
+            Err(AuthorizationError::Redirectable(
                 RedirectableAuthorizationError::InvalidCodeChallenge
             ))
         );

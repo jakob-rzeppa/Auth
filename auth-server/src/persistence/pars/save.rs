@@ -11,6 +11,7 @@ pub enum SaveParError {
 }
 
 /// Save a pushed authorization request, to be automatically deleted by redis after `ttl_seconds`.
+#[fnmock::fakeable]
 pub async fn save_par(
     request_uri: &str,
     par: AuthorizationRequest,
