@@ -2,7 +2,6 @@ use crate::domain::entity::{authorization_request::AuthorizationRequest, client:
 
 #[derive(Debug, PartialEq)]
 pub enum FatalAuthorizationError {
-    InvalidClientId,
     ClientIdMismatch,
     InvalidRedirectUri,
 }
@@ -17,92 +16,101 @@ pub enum RedirectableAuthorizationError {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum AuthorizationRequestValidationError {
+pub enum AuthorizationError {
     Fatal(FatalAuthorizationError),
     Redirectable(RedirectableAuthorizationError),
 }
 
-impl AuthorizationRequestValidationError {
+impl AuthorizationError {
     pub fn fatal(err: FatalAuthorizationError) -> Self {
-        AuthorizationRequestValidationError::Fatal(err)
+        AuthorizationError::Fatal(err)
     }
 
     pub fn redirectable(err: RedirectableAuthorizationError) -> Self {
-        AuthorizationRequestValidationError::Redirectable(err)
+        AuthorizationError::Redirectable(err)
     }
 }
 
 pub fn validate_authorization_request_against_client(
     request: &AuthorizationRequest,
     client: &Client,
-) -> Result<(), AuthorizationRequestValidationError> {
-    use AuthorizationRequestValidationError as Error;
+) -> Result<(), AuthorizationError> {
     use FatalAuthorizationError as FatalError;
     use RedirectableAuthorizationError as RedirectableError;
 
     // ==== client id ====
-    let Some(client_id) = request.client_id() else {
-        return Err(Error::fatal(FatalError::InvalidClientId));
-    };
-    let Ok(client_id) = uuid::Uuid::parse_str(client_id) else {
-        return Err(Error::fatal(FatalError::InvalidClientId));
-    };
-    if !client_id.eq(client.id()) {
-        return Err(Error::fatal(FatalError::ClientIdMismatch));
+    if request.client_id() != client.id() {
+        return Err(AuthorizationError::fatal(FatalError::ClientIdMismatch));
     }
 
     // ==== redirect_uri ====
     let Some(redirect_uri) = request.redirect_uri() else {
-        return Err(Error::fatal(FatalError::InvalidRedirectUri));
+        return Err(AuthorizationError::fatal(FatalError::InvalidRedirectUri));
     };
     if !client.has_redirect_uri(redirect_uri) {
-        return Err(Error::fatal(FatalError::InvalidRedirectUri));
+        return Err(AuthorizationError::fatal(FatalError::InvalidRedirectUri));
     }
 
     // Only allow error redirects from here on, since the client_id and redirect_uri are valid.
 
     // ==== response type ====
     let Some(response_type) = request.response_type() else {
-        return Err(Error::redirectable(RedirectableError::InvalidResponseType));
+        return Err(AuthorizationError::redirectable(
+            RedirectableError::InvalidResponseType,
+        ));
     };
     if response_type != "code" {
-        return Err(Error::redirectable(RedirectableError::InvalidResponseType));
+        return Err(AuthorizationError::redirectable(
+            RedirectableError::InvalidResponseType,
+        ));
     }
 
     // ==== scope ====
     let Some(scopes) = request.scopes() else {
-        return Err(Error::redirectable(RedirectableError::InvalidScope));
+        return Err(AuthorizationError::redirectable(
+            RedirectableError::InvalidScope,
+        ));
     };
     if !client.has_scopes(scopes) {
-        return Err(Error::redirectable(RedirectableError::InvalidScope));
+        return Err(AuthorizationError::redirectable(
+            RedirectableError::InvalidScope,
+        ));
     }
 
     // ==== state ====
     let Some(state) = request.state() else {
-        return Err(Error::redirectable(RedirectableError::InvalidState));
+        return Err(AuthorizationError::redirectable(
+            RedirectableError::InvalidState,
+        ));
     };
     if state.is_empty() {
-        return Err(Error::redirectable(RedirectableError::InvalidState));
+        return Err(AuthorizationError::redirectable(
+            RedirectableError::InvalidState,
+        ));
     }
 
     // ==== code_challenge_method ====
     let Some(code_challenge_method) = request.code_challenge_method() else {
-        return Err(Error::redirectable(
+        return Err(AuthorizationError::redirectable(
             RedirectableError::InvalidCodeChallengeMethod,
         ));
     };
     if code_challenge_method != "S256" {
-        return Err(Error::redirectable(
+        return Err(AuthorizationError::redirectable(
             RedirectableError::InvalidCodeChallengeMethod,
         ));
     }
 
     // === code_challenge ====
     let Some(code_challenge) = request.code_challenge() else {
-        return Err(Error::redirectable(RedirectableError::InvalidCodeChallenge));
+        return Err(AuthorizationError::redirectable(
+            RedirectableError::InvalidCodeChallenge,
+        ));
     };
     if code_challenge.is_empty() {
-        return Err(Error::redirectable(RedirectableError::InvalidCodeChallenge));
+        return Err(AuthorizationError::redirectable(
+            RedirectableError::InvalidCodeChallenge,
+        ));
     }
 
     Ok(())
@@ -124,7 +132,7 @@ mod tests {
 
     fn make_authorization_request(client_id: Uuid) -> AuthorizationRequest {
         AuthorizationRequest::new(
-            Some(client_id.to_string()),
+            client_id,
             Some("https://example.com/callback".to_string()),
             Some("code".to_string()),
             Some(vec!["read".to_string()]),
@@ -147,55 +155,13 @@ mod tests {
     }
 
     #[test]
-    fn rejects_missing_client_id() {
-        let client = make_client(Uuid::new_v4());
-        let par = AuthorizationRequest::new(
-            None,
-            Some("https://example.com/callback".to_string()),
-            Some("code".to_string()),
-            Some(vec!["read".to_string()]),
-            Some("some-state".to_string()),
-            Some("some-code-challenge".to_string()),
-            Some("S256".to_string()),
-        );
-
-        assert_eq!(
-            validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationRequestValidationError::fatal(
-                FatalAuthorizationError::InvalidClientId
-            ))
-        );
-    }
-
-    #[test]
-    fn rejects_malformed_client_id() {
-        let client = make_client(Uuid::new_v4());
-        let par = AuthorizationRequest::new(
-            Some("not-a-uuid".to_string()),
-            Some("https://example.com/callback".to_string()),
-            Some("code".to_string()),
-            Some(vec!["read".to_string()]),
-            Some("some-state".to_string()),
-            Some("some-code-challenge".to_string()),
-            Some("S256".to_string()),
-        );
-
-        assert_eq!(
-            validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationRequestValidationError::fatal(
-                FatalAuthorizationError::InvalidClientId
-            ))
-        );
-    }
-
-    #[test]
     fn rejects_client_id_mismatch() {
         let client = make_client(Uuid::new_v4());
         let par = make_authorization_request(Uuid::new_v4());
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationRequestValidationError::fatal(
+            Err(AuthorizationError::fatal(
                 FatalAuthorizationError::ClientIdMismatch
             ))
         );
@@ -206,7 +172,7 @@ mod tests {
         let client_id = Uuid::new_v4();
         let client = make_client(client_id);
         let par = AuthorizationRequest::new(
-            Some(client_id.to_string()),
+            client_id,
             Some("https://example.com/callback".to_string()),
             Some("token".to_string()),
             Some(vec!["read".to_string()]),
@@ -217,7 +183,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationRequestValidationError::redirectable(
+            Err(AuthorizationError::redirectable(
                 RedirectableAuthorizationError::InvalidResponseType
             ))
         );
@@ -228,7 +194,7 @@ mod tests {
         let client_id = Uuid::new_v4();
         let client = make_client(client_id);
         let par = AuthorizationRequest::new(
-            Some(client_id.to_string()),
+            client_id,
             Some("https://example.com/callback".to_string()),
             None,
             Some(vec!["read".to_string()]),
@@ -239,7 +205,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationRequestValidationError::redirectable(
+            Err(AuthorizationError::redirectable(
                 RedirectableAuthorizationError::InvalidResponseType
             ))
         );
@@ -250,7 +216,7 @@ mod tests {
         let client_id = Uuid::new_v4();
         let client = make_client(client_id);
         let par = AuthorizationRequest::new(
-            Some(client_id.to_string()),
+            client_id,
             Some("https://example.com/callback".to_string()),
             Some("code".to_string()),
             None,
@@ -261,7 +227,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationRequestValidationError::redirectable(
+            Err(AuthorizationError::redirectable(
                 RedirectableAuthorizationError::InvalidScope
             ))
         );
@@ -272,7 +238,7 @@ mod tests {
         let client_id = Uuid::new_v4();
         let client = make_client(client_id);
         let par = AuthorizationRequest::new(
-            Some(client_id.to_string()),
+            client_id,
             Some("https://example.com/callback".to_string()),
             Some("code".to_string()),
             Some(vec!["read".to_string()]),
@@ -283,7 +249,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationRequestValidationError::redirectable(
+            Err(AuthorizationError::redirectable(
                 RedirectableAuthorizationError::InvalidState
             ))
         );
@@ -294,7 +260,7 @@ mod tests {
         let client_id = Uuid::new_v4();
         let client = make_client(client_id);
         let par = AuthorizationRequest::new(
-            Some(client_id.to_string()),
+            client_id,
             Some("https://example.com/callback".to_string()),
             Some("code".to_string()),
             Some(vec!["read".to_string()]),
@@ -305,7 +271,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationRequestValidationError::redirectable(
+            Err(AuthorizationError::redirectable(
                 RedirectableAuthorizationError::InvalidCodeChallengeMethod
             ))
         );
@@ -316,7 +282,7 @@ mod tests {
         let client_id = Uuid::new_v4();
         let client = make_client(client_id);
         let par = AuthorizationRequest::new(
-            Some(client_id.to_string()),
+            client_id,
             Some("https://example.com/callback".to_string()),
             Some("code".to_string()),
             Some(vec!["read".to_string()]),
@@ -327,7 +293,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationRequestValidationError::redirectable(
+            Err(AuthorizationError::redirectable(
                 RedirectableAuthorizationError::InvalidCodeChallenge
             ))
         );
@@ -338,7 +304,7 @@ mod tests {
         let client_id = Uuid::new_v4();
         let client = make_client(client_id);
         let par = AuthorizationRequest::new(
-            Some(client_id.to_string()),
+            client_id,
             None,
             Some("code".to_string()),
             Some(vec!["read".to_string()]),
@@ -349,7 +315,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationRequestValidationError::fatal(
+            Err(AuthorizationError::fatal(
                 FatalAuthorizationError::InvalidRedirectUri
             ))
         );
@@ -360,7 +326,7 @@ mod tests {
         let client_id = Uuid::new_v4();
         let client = make_client(client_id);
         let par = AuthorizationRequest::new(
-            Some(client_id.to_string()),
+            client_id,
             Some("https://evil.example.com/callback".to_string()),
             Some("code".to_string()),
             Some(vec!["read".to_string()]),
@@ -371,7 +337,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationRequestValidationError::fatal(
+            Err(AuthorizationError::fatal(
                 FatalAuthorizationError::InvalidRedirectUri
             ))
         );
@@ -382,7 +348,7 @@ mod tests {
         let client_id = Uuid::new_v4();
         let client = make_client(client_id);
         let par = AuthorizationRequest::new(
-            Some(client_id.to_string()),
+            client_id,
             Some("https://example.com/callback".to_string()),
             Some("code".to_string()),
             Some(vec!["delete".to_string()]),
@@ -393,7 +359,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationRequestValidationError::redirectable(
+            Err(AuthorizationError::redirectable(
                 RedirectableAuthorizationError::InvalidScope
             ))
         );
@@ -404,7 +370,7 @@ mod tests {
         let client_id = Uuid::new_v4();
         let client = make_client(client_id);
         let par = AuthorizationRequest::new(
-            Some(client_id.to_string()),
+            client_id,
             Some("https://example.com/callback".to_string()),
             Some("code".to_string()),
             Some(vec!["read".to_string()]),
@@ -415,7 +381,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationRequestValidationError::redirectable(
+            Err(AuthorizationError::redirectable(
                 RedirectableAuthorizationError::InvalidState
             ))
         );
@@ -426,7 +392,7 @@ mod tests {
         let client_id = Uuid::new_v4();
         let client = make_client(client_id);
         let par = AuthorizationRequest::new(
-            Some(client_id.to_string()),
+            client_id,
             Some("https://example.com/callback".to_string()),
             Some("code".to_string()),
             Some(vec!["read".to_string()]),
@@ -437,7 +403,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationRequestValidationError::redirectable(
+            Err(AuthorizationError::redirectable(
                 RedirectableAuthorizationError::InvalidCodeChallengeMethod
             ))
         );
@@ -448,7 +414,7 @@ mod tests {
         let client_id = Uuid::new_v4();
         let client = make_client(client_id);
         let par = AuthorizationRequest::new(
-            Some(client_id.to_string()),
+            client_id,
             Some("https://example.com/callback".to_string()),
             Some("code".to_string()),
             Some(vec!["read".to_string()]),
@@ -459,7 +425,7 @@ mod tests {
 
         assert_eq!(
             validate_authorization_request_against_client(&par, &client),
-            Err(AuthorizationRequestValidationError::redirectable(
+            Err(AuthorizationError::redirectable(
                 RedirectableAuthorizationError::InvalidCodeChallenge
             ))
         );

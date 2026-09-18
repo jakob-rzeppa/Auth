@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// The authorization request.
 ///
@@ -7,7 +8,7 @@ use serde::{Deserialize, Serialize};
 /// and differentiate between errors that can be redirected to the client and those that cannot.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AuthorizationRequest {
-    client_id: Option<String>,
+    client_id: Uuid,
 
     redirect_uri: Option<String>,
     response_type: Option<String>,
@@ -20,7 +21,7 @@ pub struct AuthorizationRequest {
 
 impl AuthorizationRequest {
     pub fn new(
-        client_id: Option<String>,
+        client_id: Uuid,
         redirect_uri: Option<String>,
         response_type: Option<String>,
         scopes: Option<Vec<String>>,
@@ -39,8 +40,8 @@ impl AuthorizationRequest {
         }
     }
 
-    pub fn client_id(&self) -> Option<&str> {
-        self.client_id.as_deref()
+    pub fn client_id(&self) -> &Uuid {
+        &self.client_id
     }
 
     pub fn redirect_uri(&self) -> Option<&str> {
