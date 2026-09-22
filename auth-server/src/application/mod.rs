@@ -1,1 +1,1 @@
-pub mod authorize;
+pub mod authorization_code;

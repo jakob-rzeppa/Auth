@@ -1,37 +1,12 @@
 use uuid::Uuid;
 
 use crate::{
-    domain::{
-        entity::authorization_request::AuthorizationRequest,
-        logic::authorization_request_validation::{
-            AuthorizationError, FatalAuthorizationError, RedirectableAuthorizationError,
-            validate_authorization_request_against_client,
-        },
+    application::authorization_code::error::{
+        AuthCodeError, FatalAuthCodeError, RedirectableAuthCodeError,
     },
+    domain::entity::authorization_code::request::AuthorizationRequest,
     persistence::{clients::find_by_id::find_client_by_id, pars::save::save_par},
 };
-
-#[derive(Debug, PartialEq)]
-pub enum FatalAuthorizePushError {
-    ClientNotFound,
-    InvalidRedirectUri,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum RedirectableAuthorizePushError {
-    InvalidResponseType,
-    InvalidScope,
-    InvalidState,
-    InvalidCodeChallengeMethod,
-    InvalidCodeChallenge,
-    DatabaseError,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum AuthorizePushError {
-    Fatal(FatalAuthorizePushError),
-    Redirectable(RedirectableAuthorizePushError),
-}
 
 #[derive(Debug, PartialEq)]
 pub struct AuthorizePushSuccess {
@@ -44,17 +19,16 @@ const PAR_TTL_SECONDS: u64 = 180; // 3 minutes
 pub async fn validate_and_register_authorize_push(
     client_id: Uuid,
 
-    redirect_uri: Option<String>,
-    response_type: Option<String>,
-    scope: Option<String>, // space delimited list of scopes
+    redirect_uri: String,
+    response_type: String,
+    scope: String, // space delimited list of scopes
 
-    state: Option<String>,
-    code_challenge: Option<String>,
-    code_challenge_method: Option<String>,
-) -> Result<AuthorizePushSuccess, AuthorizePushError> {
-    let client = find_client_by_id(&client_id).ok_or(AuthorizePushError::Fatal(
-        FatalAuthorizePushError::ClientNotFound,
-    ))?;
+    state: String,
+    code_challenge: String,
+    code_challenge_method: String,
+) -> Result<AuthorizePushSuccess, AuthCodeError> {
+    let client = find_client_by_id(&client_id)
+        .ok_or(AuthCodeError::fatal(FatalAuthCodeError::ClientNotFound))?;
 
     let request = AuthorizationRequest::new(
         client_id,
@@ -66,28 +40,19 @@ pub async fn validate_and_register_authorize_push(
         code_challenge_method,
     );
 
-    validate_authorization_request_against_client(&request, &client).map_err(|err| match err {
-        AuthorizationError::Fatal(fatal) => AuthorizePushError::Fatal(match fatal {
-            FatalAuthorizationError::InvalidRedirectUri => FatalAuthorizePushError::InvalidRedirectUri,
-            FatalAuthorizationError::ClientIdMismatch => unreachable!(
-                "Client ID mismatch should not occur here as we already fetched the client by the same id."
-            )
-        }),
-        AuthorizationError::Redirectable(redirectable) => AuthorizePushError::Redirectable(match redirectable {
-            RedirectableAuthorizationError::InvalidCodeChallenge => RedirectableAuthorizePushError::InvalidCodeChallenge,
-            RedirectableAuthorizationError::InvalidCodeChallengeMethod => RedirectableAuthorizePushError::InvalidCodeChallengeMethod,
-            RedirectableAuthorizationError::InvalidResponseType => RedirectableAuthorizePushError::InvalidResponseType,
-            RedirectableAuthorizationError::InvalidScope => RedirectableAuthorizePushError::InvalidScope,
-            RedirectableAuthorizationError::InvalidState => RedirectableAuthorizePushError::InvalidState,
-        }),
-    })?;
+    request.validate_against_client(&client)?;
 
     let request_uri = generate_request_uri();
 
+    let redirect_uri = request.redirect_uri().to_string();
+    let state = request.state().to_string();
+
     save_par(&request_uri, request, PAR_TTL_SECONDS)
         .await
-        .map_err(|_| {
-            AuthorizePushError::Redirectable(RedirectableAuthorizePushError::DatabaseError)
+        .map_err(|_| AuthCodeError::Redirectable {
+            error: RedirectableAuthCodeError::DatabaseError,
+            redirect_uri,
+            state,
         })?;
 
     Ok(AuthorizePushSuccess {
@@ -130,21 +95,14 @@ mod tests {
 
     /// A fully valid set of request params (everything but `client_id`), in the same order as
     /// `validate_and_register_authorize_push`'s parameters.
-    fn valid_params() -> (
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-        Option<String>,
-    ) {
+    fn valid_params() -> (String, String, String, String, String, String) {
         (
-            Some("https://example.com/callback".to_string()),
-            Some("code".to_string()),
-            Some("read write".to_string()),
-            Some("some-state".to_string()),
-            Some("some-code-challenge".to_string()),
-            Some("S256".to_string()),
+            "https://example.com/callback".to_string(),
+            "code".to_string(),
+            "read write".to_string(),
+            "some-state".to_string(),
+            "some-code-challenge".to_string(),
+            "S256".to_string(),
         )
     }
 
@@ -158,8 +116,8 @@ mod tests {
             assert!(request_uri.starts_with(REQUEST_URI_PREFIX));
             assert_eq!(ttl_seconds, PAR_TTL_SECONDS);
             assert_eq!(par.client_id(), &client_id);
-            assert_eq!(par.redirect_uri(), Some("https://example.com/callback"));
-            assert_eq!(par.state(), Some("some-state"));
+            assert_eq!(par.redirect_uri(), "https://example.com/callback");
+            assert_eq!(par.state(), "some-state");
             Ok(())
         });
         generate_request_uri_fake().setup(|| "urn:authorize:request_uri:test".to_string());
@@ -195,10 +153,10 @@ mod tests {
             valid_params();
         let result = validate_and_register_authorize_push(
             client_id,
-            redirect_uri,
+            redirect_uri.clone(),
             response_type,
             scope,
-            state,
+            state.clone(),
             code_challenge,
             code_challenge_method,
         )
@@ -206,9 +164,11 @@ mod tests {
 
         assert_eq!(
             result,
-            Err(AuthorizePushError::Redirectable(
-                RedirectableAuthorizePushError::DatabaseError
-            ))
+            Err(AuthCodeError::Redirectable {
+                error: RedirectableAuthCodeError::DatabaseError,
+                redirect_uri,
+                state
+            })
         );
     }
 }

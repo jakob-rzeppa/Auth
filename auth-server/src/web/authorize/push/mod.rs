@@ -1,7 +1,7 @@
 use crate::{
-    application::authorize::push::{
-        AuthorizePushError, AuthorizePushSuccess, FatalAuthorizePushError,
-        RedirectableAuthorizePushError, validate_and_register_authorize_push,
+    application::authorization_code::{
+        error::{AuthCodeError, FatalAuthCodeError, RedirectableAuthCodeError},
+        push::{AuthorizePushSuccess, validate_and_register_authorize_push},
     },
     web::authorize::push::{
         error_response::AuthorizePushErrorResponse, request::AuthorizePushRequest,
@@ -24,7 +24,6 @@ pub async fn authorize_push_endpoint(
         code_challenge_method,
     }: AuthorizePushRequest,
 ) -> Result<AuthorizePushResponse, AuthorizePushErrorResponse> {
-    let client_id = client_id.ok_or(AuthorizePushErrorResponse::InvalidClientId)?;
     let Ok(client_id) = uuid::Uuid::parse_str(&client_id) else {
         return Err(AuthorizePushErrorResponse::InvalidClientId);
     };
@@ -43,31 +42,28 @@ pub async fn authorize_push_endpoint(
     )
     .await
     .map_err(|err| match err {
-        AuthorizePushError::Fatal(fatal) => match fatal {
-            FatalAuthorizePushError::ClientNotFound => AuthorizePushErrorResponse::ClientNotFound,
-            FatalAuthorizePushError::InvalidRedirectUri => {
+        AuthCodeError::Fatal { error } => match error {
+            FatalAuthCodeError::ClientNotFound => AuthorizePushErrorResponse::ClientNotFound,
+            FatalAuthCodeError::DatabaseError => AuthorizePushErrorResponse::DatabaseError,
+            FatalAuthCodeError::PushedRequestNotFound => AuthorizePushErrorResponse::DatabaseError,
+            FatalAuthCodeError::ClientIdMismatch => AuthorizePushErrorResponse::InternalServerError,
+            FatalAuthCodeError::InvalidRedirectUri => {
                 AuthorizePushErrorResponse::InvalidRedirectUri
             }
+            FatalAuthCodeError::InvalidState => AuthorizePushErrorResponse::InvalidState,
         },
-        AuthorizePushError::Redirectable(redirectable) => match redirectable {
-            RedirectableAuthorizePushError::InvalidResponseType => {
+        AuthCodeError::Redirectable { error, .. } => match error {
+            RedirectableAuthCodeError::InvalidResponseType => {
                 AuthorizePushErrorResponse::InvalidResponseType
             }
-            RedirectableAuthorizePushError::InvalidScope => {
-                AuthorizePushErrorResponse::InvalidScope
-            }
-            RedirectableAuthorizePushError::InvalidState => {
-                AuthorizePushErrorResponse::InvalidState
-            }
-            RedirectableAuthorizePushError::InvalidCodeChallengeMethod => {
+            RedirectableAuthCodeError::InvalidScope => AuthorizePushErrorResponse::InvalidScope,
+            RedirectableAuthCodeError::InvalidCodeChallengeMethod => {
                 AuthorizePushErrorResponse::InvalidCodeChallengeMethod
             }
-            RedirectableAuthorizePushError::InvalidCodeChallenge => {
+            RedirectableAuthCodeError::InvalidCodeChallenge => {
                 AuthorizePushErrorResponse::InvalidCodeChallenge
             }
-            RedirectableAuthorizePushError::DatabaseError => {
-                AuthorizePushErrorResponse::DatabaseError
-            }
+            RedirectableAuthCodeError::DatabaseError => AuthorizePushErrorResponse::DatabaseError,
         },
     })?;
 

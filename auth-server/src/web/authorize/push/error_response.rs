@@ -51,4 +51,9 @@ pub enum AuthorizePushErrorResponse {
     #[error("database_error")]
     #[description("A database error occurred.")]
     DatabaseError,
+
+    #[status_code(axum::http::StatusCode::INTERNAL_SERVER_ERROR)]
+    #[error("internal_server_error")]
+    #[description("An internal server error occurred.")]
+    InternalServerError,
 }

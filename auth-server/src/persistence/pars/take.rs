@@ -1,7 +1,7 @@
 use redis::AsyncCommands;
 
 use crate::{
-    domain::entity::authorization_request::AuthorizationRequest,
+    domain::entity::authorization_code::request::AuthorizationRequest,
     persistence::redis::get_redis_connection,
 };
 
@@ -12,6 +12,7 @@ pub enum TakeParError {
 
 /// Atomically read and delete a pushed authorization request by its `request_uri`, enforcing one-time use.
 /// Returns `None` if the PAR does not exist or has expired.
+#[fnmock::fakeable]
 pub async fn take_par(request_uri: &str) -> Result<Option<AuthorizationRequest>, TakeParError> {
     let mut conn = get_redis_connection()
         .await
