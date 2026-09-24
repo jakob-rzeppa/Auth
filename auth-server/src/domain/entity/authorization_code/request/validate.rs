@@ -5,7 +5,6 @@ use crate::domain::entity::{authorization_code::request::AuthorizationRequest, c
 pub struct ValidatedAuthorizationRequest {
     pub client_id: Uuid,
     pub redirect_uri: String,
-    pub response_type: String,
     pub scope: String,
     pub state: String,
     pub code_challenge: String,
@@ -22,7 +21,7 @@ impl AuthorizationRequest {
         let AuthorizationRequest {
             client_id,
             redirect_uri,
-            response_type,
+            response_type: _,
             scope,
             state,
             code_challenge,
@@ -32,7 +31,6 @@ impl AuthorizationRequest {
         Ok(ValidatedAuthorizationRequest {
             client_id,
             redirect_uri,
-            response_type,
             scope,
             state,
             code_challenge,

@@ -44,7 +44,6 @@ pub async fn validate_and_generate_code(
     let ValidatedAuthorizationRequest {
         client_id,
         redirect_uri,
-        response_type: _,
         scope,
         state,
         code_challenge,
