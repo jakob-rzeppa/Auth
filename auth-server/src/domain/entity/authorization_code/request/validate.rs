@@ -102,7 +102,6 @@ impl AuthorizationRequest {
 
 #[derive(Debug, PartialEq)]
 pub enum FatalValidationError {
-    ClientNotFound,
     ClientIdMismatch,
     InvalidRedirectUri,
     InvalidState,

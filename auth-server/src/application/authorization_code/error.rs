@@ -56,7 +56,6 @@ impl From<ValidationError> for AuthCodeError {
         match validation_error {
             ValidationError::Fatal { error } => AuthCodeError::Fatal {
                 error: match error {
-                    FatalValidationError::ClientNotFound => FatalAuthCodeError::ClientNotFound,
                     FatalValidationError::ClientIdMismatch => FatalAuthCodeError::ClientIdMismatch,
                     FatalValidationError::InvalidRedirectUri => {
                         FatalAuthCodeError::InvalidRedirectUri
