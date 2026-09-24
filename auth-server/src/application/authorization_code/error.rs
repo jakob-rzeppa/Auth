@@ -68,8 +68,8 @@ impl From<ValidationError> for AuthCodeError {
                 error,
                 redirect_uri,
                 state,
-            } => AuthCodeError::Redirectable {
-                error: match error {
+            } => AuthCodeError::redirectable(
+                match error {
                     RedirectableValidationError::InvalidResponseType => {
                         RedirectableAuthCodeError::InvalidResponseType
                     }
@@ -85,7 +85,7 @@ impl From<ValidationError> for AuthCodeError {
                 },
                 redirect_uri,
                 state,
-            },
+            ),
         }
     }
 }
