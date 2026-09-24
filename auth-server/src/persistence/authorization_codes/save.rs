@@ -11,8 +11,7 @@ pub enum SaveAuthorizationCodeError {
 }
 
 /// Save a authorization code, to be automatically deleted by redis after `ttl_seconds`.
-#[fnmock::fakeable]
-#[fnmock::spyable]
+#[fnmock::mockable]
 pub async fn save_authorization_code(
     code: AuthorizationCode,
     ttl_seconds: u64,

@@ -376,9 +376,8 @@ dependencies = [
 
 [[package]]
 name = "fnmock"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1cb52ea337b0cb9ae7584cfac92310e041e74c28dca6b5a669e6cd2c9c67c15"
+version = "0.2.1"
+source = "git+https://github.com/jakob-rzeppa/fnmock#07b16eff697d23e583121f03fd39c9aa5227b86e"
 dependencies = [
  "fnmock-derive",
  "predicates",
@@ -386,9 +385,8 @@ dependencies = [
 
 [[package]]
 name = "fnmock-derive"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89f95294d00fa4422b0b6002347b8649137d3000382707006a92a359dc32fad5"
+version = "0.2.1"
+source = "git+https://github.com/jakob-rzeppa/fnmock#07b16eff697d23e583121f03fd39c9aa5227b86e"
 dependencies = [
  "proc-macro2",
  "quote",

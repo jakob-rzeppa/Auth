@@ -96,10 +96,7 @@ mod tests {
     use crate::{
         domain::entity::{authorization_code::request::AuthorizationRequest, client::Client},
         persistence::{
-            authorization_codes::save::{
-                SaveAuthorizationCodeError, save_authorization_code_fake,
-                save_authorization_code_spy,
-            },
+            authorization_codes::save::{SaveAuthorizationCodeError, save_authorization_code_mock},
             clients::find_by_id::find_client_by_id_fake,
             pars::take::{TakeParError, take_par_fake},
         },
@@ -140,9 +137,9 @@ mod tests {
         });
         find_client_by_id_fake().setup(move |_| Some(client.clone()));
         generate_auth_code_fake().setup(|| "test-code".to_string());
-        save_authorization_code_fake().setup(|_, _| Ok(()));
-        let spy = save_authorization_code_spy();
-        spy.expectf(move |code: &AuthorizationCode, ttl_seconds: &u64| {
+        let mock = save_authorization_code_mock();
+        mock.setup(|_, _| Ok(()));
+        mock.expectf(move |code: &AuthorizationCode, ttl_seconds: &u64| {
             code.code() == "test-code"
                 && code.client_id() == &client_id
                 && code.redirect_uri() == "https://example.com/callback"
@@ -161,7 +158,7 @@ mod tests {
         assert_eq!(success.state, "some-state");
         assert_eq!(success.expires_in, CODE_TTL_SECONDS);
 
-        spy.assert();
+        mock.assert();
     }
 
     #[tokio::test]
@@ -283,7 +280,7 @@ mod tests {
         take_par_fake().setup(move |_| Ok(Some(request.clone())));
         find_client_by_id_fake().setup(move |_| Some(client.clone()));
         generate_auth_code_fake().setup(|| "test-code".to_string());
-        save_authorization_code_fake().setup(|_, _| Err(SaveAuthorizationCodeError::DatabaseError));
+        save_authorization_code_mock().setup(|_, _| Err(SaveAuthorizationCodeError::DatabaseError));
 
         let result =
             validate_and_generate_code(client_id, "urn:authorize:request_uri:test".to_string())
