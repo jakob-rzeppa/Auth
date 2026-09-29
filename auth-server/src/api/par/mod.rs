@@ -1,11 +1,11 @@
 use crate::{
+    api::par::{
+        error_response::AuthorizePushErrorResponse, request::AuthorizePushRequest,
+        response::AuthorizePushResponse,
+    },
     application::authorization_code::{
         error::{AuthCodeError, FatalAuthCodeError, RedirectableAuthCodeError},
         push::{AuthorizePushSuccess, validate_and_register_authorize_push},
-    },
-    web::authorize::push::{
-        error_response::AuthorizePushErrorResponse, request::AuthorizePushRequest,
-        response::AuthorizePushResponse,
     },
 };
 

@@ -2,6 +2,7 @@ use std::net::SocketAddr;
 
 use tokio::net::TcpListener;
 
+mod api;
 mod application;
 mod config;
 mod domain;
@@ -13,7 +14,7 @@ async fn main() {
     println!("[STARTUP] Application starting...");
 
     println!("[STARTUP] Building router...");
-    let app = web::router();
+    let app = api::router().merge(web::router());
 
     // Specify the address to bind to (0.0.0.0 to listen on all interfaces)
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));

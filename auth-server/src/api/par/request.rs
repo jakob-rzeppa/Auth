@@ -1,6 +1,6 @@
 use api_macros::ApiRequest;
 
-use crate::web::authorize::push::error_response::AuthorizePushErrorResponse;
+use crate::api::par::error_response::AuthorizePushErrorResponse;
 
 #[ApiRequest(AuthorizePushErrorResponse::InvalidRequestBody)]
 pub struct AuthorizePushRequest {
