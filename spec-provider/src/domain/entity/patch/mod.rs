@@ -3,6 +3,7 @@ use uuid::Uuid;
 
 pub mod proposal;
 
+#[derive(Clone)]
 pub struct Patch {
     id: Uuid,
 

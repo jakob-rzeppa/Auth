@@ -9,6 +9,7 @@ pub enum ProposalStatus {
     Ready,
 }
 
+#[derive(Clone)]
 pub struct Proposal {
     id: Uuid,
 

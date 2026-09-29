@@ -1,5 +1,6 @@
 use crate::domain::entity::patch::Patch;
 
+#[derive(Clone)]
 pub struct Version {
     id: uuid::Uuid,
 

@@ -3,6 +3,7 @@ use crate::domain::entity::version::Version;
 pub mod draft;
 
 /// A published spec.
+#[derive(Clone)]
 pub struct Spec {
     id: uuid::Uuid,
 

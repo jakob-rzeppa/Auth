@@ -16,6 +16,7 @@ pub enum DraftVisibility {
     Hidden,
 }
 
+#[derive(Clone)]
 pub struct Draft {
     id: Uuid,
 
