@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::domain::entity::{
@@ -35,10 +36,19 @@ pub struct Draft {
 
     /// The proposals for this draft. If accepted, the proposals will be converted to patches and added to the unversioned_patches.
     proposals: Vec<Proposal>,
+
+    owners: Vec<Uuid>,
+    created_by: Uuid,
+    created_at: DateTime<Utc>,
 }
 
 impl Draft {
-    pub fn new(title: String, abbreviation: String, visibility: DraftVisibility) -> Draft {
+    pub fn new(
+        title: String,
+        abbreviation: String,
+        visibility: DraftVisibility,
+        created_by: Uuid,
+    ) -> Draft {
         Draft {
             id: Uuid::new_v4(),
             title,
@@ -47,6 +57,9 @@ impl Draft {
             versions: Vec::new(),
             unversioned_patches: Vec::new(),
             proposals: Vec::new(),
+            owners: vec![created_by],
+            created_by,
+            created_at: Utc::now(),
         }
     }
 }
@@ -70,6 +83,9 @@ impl Draft {
             title: self.title,
             abbreviation: self.abbreviation,
             versions: self.versions,
+            owners: self.owners,
+            created_by: self.created_by,
+            created_at: self.created_at,
         })
     }
 }
@@ -147,6 +163,9 @@ impl Draft {
         versions: Vec<Version>,
         unversioned_patches: Vec<Patch>,
         proposals: Vec<Proposal>,
+        owners: Vec<Uuid>,
+        created_by: Uuid,
+        created_at: DateTime<Utc>,
     ) -> Draft {
         Draft {
             id,
@@ -156,6 +175,9 @@ impl Draft {
             versions,
             unversioned_patches,
             proposals,
+            owners,
+            created_at,
+            created_by,
         }
     }
 
@@ -185,5 +207,17 @@ impl Draft {
 
     pub fn proposals(&self) -> &[Proposal] {
         &self.proposals
+    }
+
+    pub fn owners(&self) -> &[Uuid] {
+        &self.owners
+    }
+
+    pub fn created_by(&self) -> &Uuid {
+        &self.created_by
+    }
+
+    pub fn created_at(&self) -> &DateTime<Utc> {
+        &self.created_at
     }
 }

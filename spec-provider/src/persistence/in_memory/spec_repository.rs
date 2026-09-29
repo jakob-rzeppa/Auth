@@ -52,7 +52,15 @@ mod tests {
     use super::*;
 
     fn make_spec(id: Uuid, title: &str) -> Spec {
-        Spec::reconstitute(id, title.to_string(), "ABBR".to_string(), vec![])
+        Spec::reconstitute(
+            id,
+            title.to_string(),
+            "ABBR".to_string(),
+            Default::default(),
+            Default::default(),
+            Default::default(),
+            Default::default(),
+        )
     }
 
     #[tokio::test]

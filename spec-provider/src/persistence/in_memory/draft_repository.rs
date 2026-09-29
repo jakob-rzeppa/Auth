@@ -58,9 +58,12 @@ mod tests {
             title.to_string(),
             "ABBR".to_string(),
             DraftVisibility::Public,
-            vec![],
-            vec![],
-            vec![],
+            Default::default(),
+            Default::default(),
+            Default::default(),
+            Default::default(),
+            Default::default(),
+            Default::default(),
         )
     }
 

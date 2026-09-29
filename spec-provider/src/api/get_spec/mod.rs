@@ -71,7 +71,10 @@ mod tests {
                 id,
                 "Spec".to_string(),
                 "SPEC".to_string(),
-                vec![],
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
             ))
             .await
             .unwrap();

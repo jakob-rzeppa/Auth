@@ -83,7 +83,15 @@ mod tests {
     }
 
     fn make_spec(id: Uuid) -> Spec {
-        Spec::reconstitute(id, "Spec".to_string(), "SPEC".to_string(), vec![])
+        Spec::reconstitute(
+            id,
+            "Spec".to_string(),
+            "SPEC".to_string(),
+            Default::default(),
+            Default::default(),
+            Default::default(),
+            Default::default(),
+        )
     }
 
     fn make_draft(id: Uuid) -> Draft {
@@ -92,9 +100,12 @@ mod tests {
             "Draft".to_string(),
             "DRAFT".to_string(),
             DraftVisibility::Public,
-            vec![],
-            vec![],
-            vec![],
+            Default::default(),
+            Default::default(),
+            Default::default(),
+            Default::default(),
+            Default::default(),
+            Default::default(),
         )
     }
 

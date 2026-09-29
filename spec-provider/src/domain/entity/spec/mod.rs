@@ -1,3 +1,6 @@
+use chrono::{DateTime, Utc};
+use uuid::Uuid;
+
 use crate::domain::entity::version::Version;
 
 pub mod draft;
@@ -18,6 +21,10 @@ pub struct Spec {
     /// that is used to display the spec by default.
     /// The other versions are kept for historical purposes.
     versions: Vec<Version>,
+
+    owners: Vec<Uuid>,
+    created_by: Uuid,
+    created_at: DateTime<Utc>,
 }
 
 impl Spec {
@@ -26,12 +33,18 @@ impl Spec {
         title: String,
         abbreviation: String,
         versions: Vec<Version>,
+        owners: Vec<Uuid>,
+        created_by: Uuid,
+        created_at: DateTime<Utc>,
     ) -> Spec {
         Spec {
             id,
             title,
             abbreviation,
             versions,
+            owners,
+            created_by,
+            created_at,
         }
     }
 
@@ -49,5 +62,17 @@ impl Spec {
 
     pub fn versions(&self) -> &[Version] {
         &self.versions
+    }
+
+    pub fn owners(&self) -> &[Uuid] {
+        &self.owners
+    }
+
+    pub fn created_by(&self) -> &Uuid {
+        &self.created_by
+    }
+
+    pub fn created_at(&self) -> &DateTime<Utc> {
+        &self.created_at
     }
 }
