@@ -9,6 +9,7 @@ use crate::domain::entity::{
     version::Version,
 };
 
+#[derive(Clone, Copy)]
 pub enum DraftVisibility {
     Public,
     Private,
@@ -155,5 +156,33 @@ impl Draft {
             unversioned_patches,
             proposals,
         }
+    }
+
+    pub fn id(&self) -> &Uuid {
+        &self.id
+    }
+
+    pub fn title(&self) -> &str {
+        &self.title
+    }
+
+    pub fn abbreviation(&self) -> &str {
+        &self.abbreviation
+    }
+
+    pub fn visibility(&self) -> &DraftVisibility {
+        &self.visibility
+    }
+
+    pub fn versions(&self) -> &[Version] {
+        &self.versions
+    }
+
+    pub fn unversioned_patches(&self) -> &[Patch] {
+        &self.unversioned_patches
+    }
+
+    pub fn proposals(&self) -> &[Proposal] {
+        &self.proposals
     }
 }

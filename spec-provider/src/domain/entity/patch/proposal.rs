@@ -3,6 +3,7 @@ use uuid::Uuid;
 
 use crate::domain::entity::patch::Patch;
 
+#[derive(Clone, Copy)]
 pub enum ProposalStatus {
     Draft,
     Ready,
@@ -84,5 +85,25 @@ impl Proposal {
 
     pub fn id(&self) -> &Uuid {
         &self.id
+    }
+
+    pub fn proposed_by(&self) -> &Uuid {
+        &self.proposed_by
+    }
+
+    pub fn created_at(&self) -> &DateTime<Utc> {
+        &self.created_at
+    }
+
+    pub fn last_updated_at(&self) -> &DateTime<Utc> {
+        &self.last_updated_at
+    }
+
+    pub fn status(&self) -> &ProposalStatus {
+        &self.status
+    }
+
+    pub fn content_uri(&self) -> &str {
+        &self.content_uri
     }
 }

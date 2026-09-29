@@ -17,4 +17,12 @@ impl Version {
     pub fn reconstitute(id: uuid::Uuid, patches: Vec<Patch>) -> Version {
         Version { id, patches }
     }
+
+    pub fn id(&self) -> &uuid::Uuid {
+        &self.id
+    }
+
+    pub fn patches(&self) -> &[Patch] {
+        &self.patches
+    }
 }

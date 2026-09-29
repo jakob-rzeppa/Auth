@@ -33,4 +33,20 @@ impl Spec {
             versions,
         }
     }
+
+    pub fn id(&self) -> &uuid::Uuid {
+        &self.id
+    }
+
+    pub fn title(&self) -> &str {
+        &self.title
+    }
+
+    pub fn abbreviation(&self) -> &str {
+        &self.abbreviation
+    }
+
+    pub fn versions(&self) -> &[Version] {
+        &self.versions
+    }
 }
