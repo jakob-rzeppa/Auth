@@ -2,7 +2,7 @@ use redis::AsyncCommands;
 
 use crate::{
     domain::entity::authorization_code::code::AuthorizationCode,
-    persistence::redis::get_redis_connection,
+    persistence::{authorization_codes::key, redis::get_redis_connection},
 };
 
 pub enum SaveAuthorizationCodeError {
@@ -31,8 +31,4 @@ pub async fn save_authorization_code(
             eprintln!("Failed to save authorization code: {:?}", error);
             SaveAuthorizationCodeError::DatabaseError
         })
-}
-
-fn key(request_uri: &str) -> String {
-    format!("authorization_code:{request_uri}")
 }
