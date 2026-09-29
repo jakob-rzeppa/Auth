@@ -5,8 +5,8 @@ use axum::{
 };
 use url::Url;
 
-use crate::application::authorization_code::error::{
-    AuthCodeError, FatalAuthCodeError, RedirectableAuthCodeError,
+use crate::domain::entity::authorization_code::request::validate::{
+    FatalValidationError, RedirectableValidationError, ValidationError,
 };
 
 pub enum AuthorizeSubmitRedirectErrorResponse {
@@ -37,49 +37,37 @@ pub enum AuthorizeSubmitErrorResponse {
     },
 }
 
-impl From<AuthCodeError> for AuthorizeSubmitErrorResponse {
-    fn from(error: AuthCodeError) -> Self {
+impl From<ValidationError> for AuthorizeSubmitErrorResponse {
+    fn from(error: ValidationError) -> Self {
         match error {
-            AuthCodeError::Fatal { error } => AuthorizeSubmitErrorResponse::Page {
+            ValidationError::Fatal { error } => AuthorizeSubmitErrorResponse::Page {
                 error: match error {
-                    FatalAuthCodeError::ClientNotFound => {
-                        AuthorizeSubmitPageErrorResponse::ClientNotFound
-                    }
-                    FatalAuthCodeError::ClientIdMismatch => {
+                    FatalValidationError::ClientIdMismatch => {
                         AuthorizeSubmitPageErrorResponse::ClientIdMismatch
                     }
-                    FatalAuthCodeError::InvalidRedirectUri => {
+                    FatalValidationError::InvalidRedirectUri => {
                         AuthorizeSubmitPageErrorResponse::InvalidRedirectUri
                     }
-                    FatalAuthCodeError::InvalidState => {
+                    FatalValidationError::InvalidState => {
                         AuthorizeSubmitPageErrorResponse::InvalidState
-                    }
-                    FatalAuthCodeError::PushedRequestNotFound => {
-                        AuthorizeSubmitPageErrorResponse::RequestNotFound
-                    }
-                    FatalAuthCodeError::DatabaseError => {
-                        AuthorizeSubmitPageErrorResponse::ServerError
                     }
                 },
             },
-            AuthCodeError::Redirectable {
+            ValidationError::Redirectable {
                 error,
                 redirect_uri,
                 state,
             } => AuthorizeSubmitErrorResponse::Redirect {
                 error: match error {
-                    RedirectableAuthCodeError::InvalidResponseType => {
+                    RedirectableValidationError::InvalidResponseType => {
                         AuthorizeSubmitRedirectErrorResponse::UnsupportedResponseType
                     }
-                    RedirectableAuthCodeError::InvalidScope => {
+                    RedirectableValidationError::InvalidScope => {
                         AuthorizeSubmitRedirectErrorResponse::InvalidScope
                     }
-                    RedirectableAuthCodeError::InvalidCodeChallengeMethod
-                    | RedirectableAuthCodeError::InvalidCodeChallenge => {
+                    RedirectableValidationError::InvalidCodeChallengeMethod
+                    | RedirectableValidationError::InvalidCodeChallenge => {
                         AuthorizeSubmitRedirectErrorResponse::InvalidCodeChallenge
-                    }
-                    RedirectableAuthCodeError::DatabaseError => {
-                        AuthorizeSubmitRedirectErrorResponse::ServerError
                     }
                 },
                 redirect_uri,
