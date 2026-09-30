@@ -5,4 +5,6 @@ pub mod entity {
         pub mod code;
         pub mod request;
     }
+
+    pub mod access_token;
 }

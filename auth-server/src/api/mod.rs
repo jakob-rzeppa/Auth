@@ -1,9 +1,14 @@
 mod par;
+mod token;
 
-use axum::{Router, routing::post};
-
-use crate::api::par::authorize_push_endpoint;
+use axum::{
+    Router,
+    routing::{get, post},
+};
 
 pub fn router() -> Router {
-    Router::new().route("/par", post(authorize_push_endpoint))
+    Router::new()
+        .route("/health", get(|| async { "ok" }))
+        .route("/par", post(par::authorize_push_endpoint))
+        .route("/token", post(token::token_endpoint))
 }

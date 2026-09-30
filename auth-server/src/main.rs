@@ -16,7 +16,7 @@ async fn main() {
     let app = api::router().merge(web::router());
 
     // Specify the address to bind to (0.0.0.0 to listen on all interfaces)
-    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
+    let addr = SocketAddr::from(([0, 0, 0, 0], config::app_port()));
 
     // Create listener on address
     println!("[STARTUP] Binding to address: {}", addr);

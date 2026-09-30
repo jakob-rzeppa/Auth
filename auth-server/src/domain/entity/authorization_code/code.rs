@@ -7,7 +7,6 @@ pub struct AuthorizationCode {
     code: String,
     client_id: Uuid,
 
-    redirect_uri: String,
     scope: String,
 
     code_challenge: String,
@@ -18,7 +17,6 @@ impl AuthorizationCode {
     pub fn new(
         code: String,
         client_id: Uuid,
-        redirect_uri: String,
         scope: String,
         code_challenge: String,
         code_challenge_method: String,
@@ -26,7 +24,6 @@ impl AuthorizationCode {
         Self {
             code,
             client_id,
-            redirect_uri,
             scope,
             code_challenge,
             code_challenge_method,
@@ -39,10 +36,6 @@ impl AuthorizationCode {
 
     pub fn client_id(&self) -> &Uuid {
         &self.client_id
-    }
-
-    pub fn redirect_uri(&self) -> &str {
-        &self.redirect_uri
     }
 
     pub fn scope(&self) -> &str {

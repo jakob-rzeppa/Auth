@@ -1,0 +1,2 @@
+[common]
+database-url-var = "LOCAL_POSTGRES_URL"

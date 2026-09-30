@@ -17,5 +17,18 @@ services:
       # internal backend network, so it is deliberately dev-only.
       - "127.0.0.1:${REDIS_HOST_PORT}:6379"
 
+  auth-server-db:
+    # Same internal-network caveat as auth-server-redis above.
+    networks:
+      - auth-server-db-host-access
+    ports:
+      # Published for local tooling (psql, dev.sh). Dev-only, like Redis above.
+      - "127.0.0.1:${DB_HOST_PORT}:5432"
+
+  auth-server:
+    ports:
+      - "${APP_HOST_PORT}:${APP_PORT}"
+
 networks:
   auth-server-redis-host-access:
+  auth-server-db-host-access:

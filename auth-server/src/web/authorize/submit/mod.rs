@@ -62,7 +62,6 @@ pub async fn authorize_submit_endpoint(
     let authorization_code = AuthorizationCode::new(
         code.clone(),
         client_id,
-        redirect_uri.clone(),
         scope,
         code_challenge,
         code_challenge_method,
@@ -156,7 +155,6 @@ mod tests {
         mock.expectf(move |code: &AuthorizationCode, ttl_seconds: &u64| {
             code.code() == "test-code"
                 && code.client_id() == &client_id
-                && code.redirect_uri() == "https://example.com/callback"
                 && code.scope() == "read write"
                 && code.code_challenge() == "some-code-challenge"
                 && code.code_challenge_method() == "S256"
