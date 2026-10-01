@@ -1,0 +1,76 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT token_hash, client_id, iat, exp, scope FROM access_tokens WHERE token_hash = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "token_hash",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "access_tokens",
+            "name": "token_hash"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "client_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "access_tokens",
+            "name": "client_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "iat",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "access_tokens",
+            "name": "iat"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "exp",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "access_tokens",
+            "name": "exp"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "scope",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "access_tokens",
+            "name": "scope"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "a24fc454af1c614a657d48213c1573f1cb071f1336628347553f20e5e493eb05"
+}

@@ -1,0 +1,87 @@
+services:
+  auth-server-db:
+    image: postgres:17-alpine
+    env_file:
+      - path: .env
+        required: true
+      - path: .env.local
+        required: false
+    networks:
+      - auth-server-internal
+    volumes:
+      - auth-server-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  auth-server-redis:
+    image: redis:7-alpine
+    networks:
+      - auth-server-internal
+    volumes:
+      - auth-server-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # One-shot: applies migrations and exits. The server only starts once this
+  # has completed successfully. Re-run on its own with:
+  #   docker compose run --rm auth-server-migrate
+  auth-server-migrate:
+    build:
+      context: .
+      target: migrator
+    env_file:
+      - path: .env
+        required: true
+      - path: .env.local
+        required: false
+    restart: "no"
+    networks:
+      - auth-server-internal
+    depends_on:
+      auth-server-db:
+        condition: service_healthy
+
+  auth-server:
+    build:
+      context: .
+      target: runtime
+    env_file:
+      - path: .env
+        required: true
+      - path: .env.local
+        required: false
+    networks:
+      - auth-server-internal
+      - auth-server
+    ports:
+      - "${APP_HOST_PORT:-8081}:${APP_PORT:-8080}"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:$$APP_PORT/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    depends_on:
+      auth-server-redis:
+        condition: service_healthy
+      auth-server-migrate:
+        condition: service_completed_successfully
+
+networks:
+  # No route off this network: the database and redis are reachable only from
+  # containers attached to it, and have no outbound access themselves.
+  auth-server-internal:
+    internal: true
+
+  # Carries the server's published port.
+  auth-server:
+
+volumes:
+  auth-server-db-data:
+  auth-server-redis-data:

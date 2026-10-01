@@ -18,7 +18,8 @@ CMD ["migrate", "run", "--source", "migrations"]
 # ---------------------------------------------------------------------------
 FROM rust:1-slim-trixie AS dev
 
-# git for the api-macros git dependency, curl for the compose healthcheck.
+# git for the api-macros and fnmock git dependencies, curl for the compose
+# healthcheck.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends git ca-certificates curl \
     && rm -rf /var/lib/apt/lists/*
@@ -30,40 +31,44 @@ WORKDIR /app
 
 ENV SQLX_OFFLINE=true
 
-COPY Cargo.toml Cargo.lock sqlx.toml ./
+COPY Cargo.toml Cargo.lock sqlx.toml askama.toml ./
 COPY .sqlx ./.sqlx
 COPY migrations ./migrations
 COPY seed ./seed
+COPY templates ./templates
 COPY src ./src
 
 CMD ["cargo", "watch", "-x", "run"]
 
 # ---------------------------------------------------------------------------
-# builder: compiles the identity-server binary.
+# builder: compiles the auth-server binary.
 #
-# The sqlx query macros are checked offline against the metadata in .sqlx, since no database is reachable during the build.
-# Regenerate it with `cargo sqlx prepare` after changing a query or migration,
-# see DEV.md.
+# The sqlx query macros are checked offline against the metadata in .sqlx,
+# since no database is reachable during the build. Regenerate it with
+# `cargo sqlx prepare` after changing a query or migration, see DEV.md.
+# The askama templates are compiled into the binary.
 # ---------------------------------------------------------------------------
 FROM rust:1-slim-trixie AS builder
 
-# git is needed for the api-macros git dependency, curl for utoipa-swagger-ui's
-# build script.
+# git is needed for the api-macros and fnmock git dependencies.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends git ca-certificates curl \
+    && apt-get install -y --no-install-recommends git ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY Cargo.toml Cargo.lock sqlx.toml ./
+ENV SQLX_OFFLINE=true
+
+COPY Cargo.toml Cargo.lock sqlx.toml askama.toml ./
 COPY .sqlx ./.sqlx
+COPY templates ./templates
 COPY src ./src
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/app/target \
     cargo build --release --locked \
-    && cp target/release/identity-server /usr/local/bin/identity-server
+    && cp target/release/auth-server /usr/local/bin/auth-server
 
 # ---------------------------------------------------------------------------
 # runtime: the server itself. Does not run migrations.
@@ -75,12 +80,12 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-RUN useradd --system --no-create-home identity-server
+RUN useradd --system --no-create-home auth-server
 
 WORKDIR /app
-COPY --from=builder /usr/local/bin/identity-server ./identity-server
-# Read at runtime via the relative path seed/roles.yaml.
+COPY --from=builder /usr/local/bin/auth-server ./auth-server
+# Read at runtime via the relative path seed/clients.yaml.
 COPY seed ./seed
 
-USER identity-server
-ENTRYPOINT ["./identity-server"]
+USER auth-server
+ENTRYPOINT ["./auth-server"]
