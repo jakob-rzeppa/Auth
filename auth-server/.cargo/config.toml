@@ -1,0 +1,4 @@
+[env]
+# Check the sqlx query macros against the metadata in .sqlx instead of a live
+# database. `cargo sqlx prepare` overrides this. See DEV.md.
+SQLX_OFFLINE = "true"

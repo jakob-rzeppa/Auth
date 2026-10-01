@@ -37,7 +37,7 @@ The database and redis are reachable from the host.
 ## Query metadata (`.sqlx`)
 
 The `query!` macros are checked offline against the metadata in `.sqlx/`
-(`SQLX_OFFLINE=true` in the Dockerfile), so neither the image build nor the dev
+(`.cargo/config.toml` sets `SQLX_OFFLINE=true`), so neither the image build nor the dev
 container needs a database. **Commit `.sqlx/`**, and regenerate it whenever a query or
 a migration changes, otherwise the Docker build fails.
 

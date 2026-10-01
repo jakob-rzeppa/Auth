@@ -29,8 +29,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 
 WORKDIR /app
 
-ENV SQLX_OFFLINE=true
-
+COPY .cargo ./.cargo
 COPY Cargo.toml Cargo.lock sqlx.toml askama.toml ./
 COPY .sqlx ./.sqlx
 COPY migrations ./migrations
@@ -43,9 +42,10 @@ CMD ["cargo", "watch", "-x", "run"]
 # ---------------------------------------------------------------------------
 # builder: compiles the auth-server binary.
 #
-# The sqlx query macros are checked offline against the metadata in .sqlx,
-# since no database is reachable during the build. Regenerate it with
-# `cargo sqlx prepare` after changing a query or migration, see DEV.md.
+# The sqlx query macros are checked offline against the metadata in .sqlx (see
+# .cargo/config.toml), since no database is reachable during the build.
+# Regenerate it with `cargo sqlx prepare` after changing a query or migration,
+# see DEV.md.
 # The askama templates are compiled into the binary.
 # ---------------------------------------------------------------------------
 FROM rust:1-slim-trixie AS builder
@@ -57,8 +57,7 @@ RUN apt-get update \
 
 WORKDIR /app
 
-ENV SQLX_OFFLINE=true
-
+COPY .cargo ./.cargo
 COPY Cargo.toml Cargo.lock sqlx.toml askama.toml ./
 COPY .sqlx ./.sqlx
 COPY templates ./templates
