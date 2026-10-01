@@ -28,8 +28,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 
 WORKDIR /app
 
-ENV SQLX_OFFLINE=true
-
+COPY .cargo ./.cargo
 COPY Cargo.toml Cargo.lock sqlx.toml ./
 COPY .sqlx ./.sqlx
 COPY migrations ./migrations
@@ -55,6 +54,7 @@ RUN apt-get update \
 
 WORKDIR /app
 
+COPY .cargo ./.cargo
 COPY Cargo.toml Cargo.lock sqlx.toml ./
 COPY .sqlx ./.sqlx
 COPY src ./src
