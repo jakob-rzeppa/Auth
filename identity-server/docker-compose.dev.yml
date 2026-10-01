@@ -1,0 +1,52 @@
+# Development override. Layered on top of docker-compose.yml:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml watch
+#
+# `watch` syncs source changes into the container, where cargo-watch rebuilds
+# and restarts the server. Changing a migration re-runs the migrator.
+services:
+  identity-server-db:
+    # Also attach a non-internal network so the port can be published, and
+    # `cargo sqlx prepare` can reach the database via LOCAL_POSTGRES_URL.
+    networks:
+      - identity-server
+    ports:
+      - "127.0.0.1:${DB_HOST_PORT:-5432}:5432"
+
+  identity-server-migrate:
+    develop:
+      watch:
+        - path: ./migrations
+          action: rebuild
+
+  identity-server:
+    build:
+      target: dev
+    volumes:
+      # Keep build artifacts and downloaded crates across container restarts,
+      # so only the first start compiles everything.
+      - identity-server-dev-target:/app/target
+      - identity-server-dev-cargo-registry:/usr/local/cargo/registry
+    healthcheck:
+      # The first compile inside the container takes a while.
+      start_period: 5m
+    develop:
+      watch:
+        - path: ./src
+          target: /app/src
+          action: sync
+        - path: ./seed
+          target: /app/seed
+          action: sync
+        - path: ./.sqlx
+          target: /app/.sqlx
+          action: sync
+        - path: ./Cargo.toml
+          target: /app/Cargo.toml
+          action: sync
+        - path: ./Cargo.lock
+          target: /app/Cargo.lock
+          action: sync
+
+volumes:
+  identity-server-dev-target:
+  identity-server-dev-cargo-registry:
