@@ -21,7 +21,14 @@ pub fn generate_access_token(client_id: &Uuid, scope: &str) -> (String, AccessTo
     let token = generate_token();
     let token_hash = hash_token(&token);
 
-    let access_token = AccessToken::new(token_hash, *client_id, Utc::now(), exp, scope.to_string());
+    let access_token = AccessToken::new(
+        token_hash,
+        "bearer".to_string(),
+        *client_id,
+        Utc::now(),
+        exp,
+        scope.to_string(),
+    );
 
     (token, access_token)
 }

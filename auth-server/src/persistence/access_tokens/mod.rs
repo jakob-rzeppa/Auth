@@ -11,6 +11,7 @@ pub mod remove;
 #[derive(FromRow)]
 struct AccessTokenRow {
     token_hash: String,
+    token_type: String,
     client_id: Uuid,
     iat: DateTime<Utc>,
     exp: DateTime<Utc>,
@@ -21,6 +22,7 @@ impl AccessTokenRow {
     fn into_access_token(self) -> AccessToken {
         AccessToken::new(
             self.token_hash,
+            self.token_type,
             self.client_id,
             self.iat,
             self.exp,

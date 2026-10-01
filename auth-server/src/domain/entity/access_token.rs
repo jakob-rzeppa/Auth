@@ -4,6 +4,8 @@ use uuid::Uuid;
 pub struct AccessToken {
     token_hash: String,
 
+    token_type: String,
+
     client_id: Uuid,
 
     /// The time at which the token was issued, in UTC.
@@ -17,6 +19,7 @@ pub struct AccessToken {
 impl AccessToken {
     pub fn new(
         token_hash: String,
+        token_type: String,
         client_id: Uuid,
         iat: DateTime<Utc>,
         exp: DateTime<Utc>,
@@ -24,6 +27,7 @@ impl AccessToken {
     ) -> Self {
         Self {
             token_hash,
+            token_type,
             client_id,
             iat,
             exp,
@@ -35,6 +39,10 @@ impl AccessToken {
 impl AccessToken {
     pub fn token_hash(&self) -> &str {
         &self.token_hash
+    }
+
+    pub fn token_type(&self) -> &str {
+        &self.token_type
     }
 
     pub fn client_id(&self) -> &Uuid {
