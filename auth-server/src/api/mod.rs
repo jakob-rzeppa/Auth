@@ -1,3 +1,4 @@
+mod introspection;
 mod par;
 mod token;
 
@@ -11,4 +12,5 @@ pub fn router() -> Router {
         .route("/health", get(|| async { "ok" }))
         .route("/par", post(par::authorize_push_endpoint))
         .route("/token", post(token::token_endpoint))
+        .route("/introspect", post(introspection::introspection_endpoint))
 }

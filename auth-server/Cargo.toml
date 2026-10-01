@@ -20,7 +20,7 @@ url = "2.5.8"
 uuid = { version="1.26.0", features=["v4", "serde"] }
 
 api-macros = { git = "https://github.com/jakob-rzeppa/Auth.git", branch = "main" }
-chrono = "0.4.45"
+chrono = { version = "0.4.45", features = ["serde"] }
 redis = { version = "1.7.0", features = ["tokio-comp"] }
 rand = "0.10.3"
 sha2 = "0.11.0"

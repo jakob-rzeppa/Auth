@@ -11,7 +11,7 @@ pub enum FindByTokenHashAccessTokenError {
 
 /// Find a access token by the hash of the token.
 /// Expired tokens are still returned, checking `exp` is up to the caller.
-#[fnmock::fakeable]
+#[fnmock::mockable]
 pub async fn find_access_token_by_token_hash(
     token_hash: &str,
 ) -> Result<Option<AccessToken>, FindByTokenHashAccessTokenError> {
