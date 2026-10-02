@@ -1,3 +1,4 @@
+use axum::http::header;
 use axum::response::IntoResponse;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -35,13 +36,21 @@ impl IntoResponse for IntrospectionResponse {
                     "exp": exp.timestamp(),
                     "iss": iss,
                 });
-                axum::Json(response_body).into_response()
+                (
+                    [(header::CACHE_CONTROL, "no-store")],
+                    axum::Json(response_body),
+                )
+                    .into_response()
             }
             IntrospectionResponse::Inactive => {
                 let response_body = serde_json::json!({
                     "active": false
                 });
-                axum::Json(response_body).into_response()
+                (
+                    [(header::CACHE_CONTROL, "no-store")],
+                    axum::Json(response_body),
+                )
+                    .into_response()
             }
         }
     }

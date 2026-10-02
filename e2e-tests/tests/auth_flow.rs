@@ -63,6 +63,7 @@ async fn auth_flow() {
         .unwrap();
 
     assert_eq!(par_res.status(), 201);
+    assert_eq!(par_res.headers()["cache-control"], "no-store");
     let par: Value = par_res.json().await.unwrap();
     assert_fields(&par, &["request_uri", "expires_in"]);
     let request_uri = par["request_uri"].as_str().unwrap();
@@ -122,6 +123,7 @@ async fn auth_flow() {
         .unwrap();
 
     assert_eq!(token_res.status(), 201);
+    assert_eq!(token_res.headers()["cache-control"], "no-store");
     let token: Value = token_res.json().await.unwrap();
     assert_fields(
         &token,
@@ -143,6 +145,7 @@ async fn auth_flow() {
         .unwrap();
 
     assert_eq!(introspect_res.status(), 200);
+    assert_eq!(introspect_res.headers()["cache-control"], "no-store");
     let introspection: Value = introspect_res.json().await.unwrap();
     assert_fields(
         &introspection,

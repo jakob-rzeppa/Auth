@@ -1,7 +1,7 @@
 use api_macros::ApiErrorResponse;
 use axum::http::StatusCode;
 
-#[ApiErrorResponse]
+#[ApiErrorResponse(headers(axum::http::header::CACHE_CONTROL => "no-store"))]
 pub enum IntrospectionErrorResponse {
     #[status_code(StatusCode::BAD_REQUEST)]
     #[error("invalid_request")]
