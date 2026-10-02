@@ -17,7 +17,7 @@
       {
         "ordinal": 1,
         "name": "token_type",
-        "type_info": "Varchar",
+        "type_info": "Text",
         "origin": {
           "Table": {
             "table": "access_tokens",

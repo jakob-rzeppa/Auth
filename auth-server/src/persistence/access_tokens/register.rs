@@ -20,8 +20,9 @@ pub async fn register_access_token(
         .map_err(|_| RegisterAccessTokenError::DatabaseError)?;
 
     query!(
-        "INSERT INTO access_tokens (token_hash, client_id, iat, exp, scope) VALUES ($1, $2, $3, $4, $5)",
+        "INSERT INTO access_tokens (token_hash, token_type, client_id, iat, exp, scope) VALUES ($1, $2, $3, $4, $5, $6)",
         access_token.token_hash(),
+        access_token.token_type(),
         access_token.client_id(),
         access_token.iat(),
         access_token.exp(),
