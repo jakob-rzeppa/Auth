@@ -97,6 +97,7 @@ fn generate_auth_code() -> String {
 mod tests {
     use super::*;
     use crate::{
+        config::iss_fake,
         domain::entity::{authorization_code::request::AuthorizationRequest, client::Client},
         persistence::{
             authorization_codes::save::{SaveAuthorizationCodeError, save_authorization_code_mock},
@@ -152,6 +153,7 @@ mod tests {
         });
         find_client_by_id_fake().setup(move |_| Some(client.clone()));
         generate_auth_code_fake().setup(|| "test-code".to_string());
+        iss_fake().setup(|| "test-issuer");
         let mock = save_authorization_code_mock();
         mock.setup(|_, _| Ok(()));
         mock.expectf(move |code: &AuthorizationCode, ttl_seconds: &u64| {
@@ -173,6 +175,7 @@ mod tests {
         assert_eq!(response.redirect_uri, "https://example.com/callback");
         assert_eq!(response.state, "some-state");
         assert_eq!(response.expires_in, CODE_TTL_SECONDS);
+        assert_eq!(response.iss, "test-issuer");
 
         mock.assert();
     }

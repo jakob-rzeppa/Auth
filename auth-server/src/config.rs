@@ -50,6 +50,7 @@ pub fn access_token_ttl() -> u32 {
     CONFIG.access_token_ttl
 }
 
+#[fnmock::fakeable]
 pub fn iss() -> &'static str {
     &CONFIG.iss
 }

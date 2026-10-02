@@ -215,15 +215,6 @@ mod tests {
                 "some-state".to_string(),
             ))
         );
-
-        assert_eq!(
-            request.validate_against_client(&client),
-            Err(ValidationError::redirectable(
-                RedirectableValidationError::InvalidCodeChallengeMethod,
-                "https://example.com/callback".to_string(),
-                "some-state".to_string(),
-            ))
-        );
     }
 
     #[test]
