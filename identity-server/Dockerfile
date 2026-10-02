@@ -35,7 +35,10 @@ COPY migrations ./migrations
 COPY seed ./seed
 COPY src ./src
 
-CMD ["cargo", "watch", "-x", "run"]
+# The target volume outlives the image, and COPY and `watch` sync keep the host
+# mtimes. Cargo would treat sources older than the cached binary as unchanged and
+# skip the rebuild, so touch them on every start.
+CMD ["sh", "-c", "find src -name '*.rs' -exec touch {} + && exec cargo watch -x run"]
 
 # ---------------------------------------------------------------------------
 # builder: compiles the identity-server binary.
