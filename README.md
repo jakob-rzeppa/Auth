@@ -1,22 +1,42 @@
 # Auth
 
-A implementation of OAuth 2.0 (2.1) to get a better understanding of how it works.
+A from-scratch implementation of **OAuth 2.1** (and the surrounding RFCs) in Rust, built **for learning**. The goal is to understand how OAuth works.
 
-This includes a idenity-server for user management.
+[OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1) is still a draft, so this project follows the current draft and surrounding RFCs like Pushed Authorization Requests in [RFC 9126](https://datatracker.ietf.org/doc/html/rfc9126).
 
-Even though [OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1) is currently work in progress, I will try to follow the current draft and make changes if necessary.
+## Surrounding Projects
 
-Since OAuth 2.1 is compatible with [OAuth 2.0](https://www.rfc-editor.org/info/rfc6749/) and includes the [Best current security practice](https://datatracker.ietf.org/doc/html/rfc9700) and more updates I'll be looking into them as well.
+A OAuth server without some system to use it is not very useful. That's why this repo contains multiple projects.
 
-## Links
+- [`identity-server`](identity-server): a user management service that the auth-server uses to check credentials.
+- [`auth-server`](auth-server): the OAuth authorization server.
 
-- [Video](https://www.youtube.com/watch?v=996OiexHze0)
+A [rfc-editor](https://www.rfc-editor.org/) like specification manager, split into three parts:
 
-## TODO
+- [`spec-provider`](spec-provider): a resource server that contains the specs and serves them to clients.
+- [`spec-editor`](spec-editor) (TODO): a client for editing the specs, which calls the spec-provider to save them.
+- [`spec-viewer`](spec-viewer) (TODO): a client for viewing the specs, which calls the spec-provider to read them.
 
-- Scopes
-- Token introspection - [RFC7662](https://www.rfc-editor.org/info/rfc7662)
-- Auth server metadata - [RFC8414](https://www.rfc-editor.org/info/rfc8414)
-- Dynamic Client Registration / Management - [RFC7591](https://www.rfc-editor.org/info/rfc7591) and [RFC7592](https://www.rfc-editor.org/info/rfc7592)
-- TLS
-- proof-of-possession - DPoP [RFC9449](https://www.rfc-editor.org/info/rfc9449) or mTLS [RFC8705](https://www.rfc-editor.org/info/rfc8705)
+## Implemented OAuth concepts
+
+- **Authorization Code flow with PKCE** is the only flow, as in OAuth 2.1 (no implicit or password grants).
+- **Pushed authorization requests** are stored in Redis and consumed once.
+- **Token introspection**, so resource servers can check if a token is valid.
+
+### Roadmap
+
+- [Openid Connect](https://openid.net/specs/openid-connect-core-1_0.html)
+- **HTTPS**
+- **Client registration and management**
+  - Dynamic client registration ([RFC 7591](https://www.rfc-editor.org/info/rfc7591))
+  - Client management ([RFC 7592](https://www.rfc-editor.org/info/rfc7592))
+- **Token revocation** ([RFC 7009](https://www.rfc-editor.org/info/rfc7009))
+- **Refresh tokens** ([RFC 6749](https://www.rfc-editor.org/info/rfc6749))
+- **Proof of possession**:
+  - DPoP ([RFC 9449](https://www.rfc-editor.org/info/rfc9449))
+  - or mTLS ([RFC 8705](https://www.rfc-editor.org/info/rfc8705))
+- **Client credentials flow** ([OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1#section-4.4))
+
+## License
+
+See [LICENSE](LICENSE).
