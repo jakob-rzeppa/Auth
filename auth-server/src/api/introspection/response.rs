@@ -10,6 +10,7 @@ pub enum IntrospectionResponse {
 
         iat: DateTime<Utc>,
         exp: DateTime<Utc>,
+        iss: String,
     },
     Inactive,
 }
@@ -23,6 +24,7 @@ impl IntoResponse for IntrospectionResponse {
                 token_type,
                 iat,
                 exp,
+                iss,
             } => {
                 let response_body = serde_json::json!({
                     "active": true,
@@ -31,6 +33,7 @@ impl IntoResponse for IntrospectionResponse {
                     "token_type": token_type,
                     "iat": iat.timestamp(),
                     "exp": exp.timestamp(),
+                    "iss": iss,
                 });
                 axum::Json(response_body).into_response()
             }

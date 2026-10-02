@@ -2,6 +2,7 @@ use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 use rand::Rng;
 
 use crate::{
+    config::iss,
     domain::entity::authorization_code::{
         code::AuthorizationCode, request::validate::ValidatedAuthorizationRequest,
     },
@@ -80,6 +81,7 @@ pub async fn authorize_submit_endpoint(
         redirect_uri,
         state,
         expires_in: CODE_TTL_SECONDS,
+        iss: iss().to_string(),
     })
 }
 

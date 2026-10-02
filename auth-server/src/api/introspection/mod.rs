@@ -6,6 +6,7 @@ use crate::{
         error_response::IntrospectionErrorResponse, request::IntrospectionRequest,
         response::IntrospectionResponse,
     },
+    config,
     persistence::access_tokens::find_by_token_hash::find_access_token_by_token_hash,
 };
 
@@ -36,6 +37,7 @@ pub async fn introspection_endpoint(
         token_type: access_token.token_type().to_string(),
         iat: *access_token.iat(),
         exp: *access_token.exp(),
+        iss: config::iss().to_string(),
     })
 }
 

@@ -5,6 +5,7 @@ struct Config {
     database_url: String,
     app_port: u16,
     access_token_ttl: u32,
+    iss: String,
 }
 
 static CONFIG: LazyLock<Config> = LazyLock::new(|| {
@@ -22,11 +23,14 @@ static CONFIG: LazyLock<Config> = LazyLock::new(|| {
         .parse()
         .expect("ACCESS_TOKEN_TTL must be a valid duration");
 
+    let iss = std::env::var("ISSUER_IDENTIFIER").expect("ISSUER_IDENTIFIER must be set");
+
     Config {
         redis_url,
         database_url,
         app_port,
         access_token_ttl,
+        iss,
     }
 });
 
@@ -44,4 +48,8 @@ pub fn app_port() -> u16 {
 
 pub fn access_token_ttl() -> u32 {
     CONFIG.access_token_ttl
+}
+
+pub fn iss() -> &'static str {
+    &CONFIG.iss
 }

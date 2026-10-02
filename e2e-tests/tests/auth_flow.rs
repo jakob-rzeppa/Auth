@@ -104,6 +104,7 @@ async fn auth_flow() {
         params.remove("expires_in").as_deref(),
         Some(CODE_TTL_SECONDS.to_string().as_str())
     );
+    assert_eq!(params.remove("iss").as_deref(), Some(cfg.issuer()));
     assert!(params.is_empty(), "unexpected redirect params {params:?}");
 
     // ==== Token ====
@@ -145,12 +146,21 @@ async fn auth_flow() {
     let introspection: Value = introspect_res.json().await.unwrap();
     assert_fields(
         &introspection,
-        &["active", "scope", "client_id", "token_type", "iat", "exp"],
+        &[
+            "active",
+            "scope",
+            "client_id",
+            "token_type",
+            "iat",
+            "exp",
+            "iss",
+        ],
     );
     assert_eq!(introspection["active"], true);
     assert_eq!(introspection["scope"], cfg.scope());
     assert_eq!(introspection["client_id"], cfg.client_id());
     assert_eq!(introspection["token_type"], "bearer");
+    assert_eq!(introspection["iss"], cfg.issuer());
 
     let iat = introspection["iat"].as_i64().unwrap();
     let exp = introspection["exp"].as_i64().unwrap();

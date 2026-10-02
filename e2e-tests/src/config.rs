@@ -11,6 +11,9 @@ pub struct Config {
     client_id: String,
     redirect_uri: String,
     scope: String,
+
+    // auth-server's ISSUER_IDENTIFIER
+    issuer: String,
 }
 
 impl Config {
@@ -30,6 +33,7 @@ impl Config {
             client_id: std::env::var("CLIENT_ID").unwrap(),
             redirect_uri: std::env::var("REDIRECT_URI").unwrap(),
             scope: std::env::var("SCOPE").unwrap(),
+            issuer: std::env::var("ISSUER_IDENTIFIER").unwrap(),
         }
     }
 
@@ -55,6 +59,10 @@ impl Config {
 
     pub fn scope(&self) -> &str {
         &self.scope
+    }
+
+    pub fn issuer(&self) -> &str {
+        &self.issuer
     }
 }
 

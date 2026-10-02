@@ -11,6 +11,7 @@ pub struct AuthorizeSubmitResponse {
     pub redirect_uri: String,
     pub state: String,
     pub expires_in: u64,
+    pub iss: String,
 }
 
 impl IntoResponse for AuthorizeSubmitResponse {
@@ -21,7 +22,8 @@ impl IntoResponse for AuthorizeSubmitResponse {
         url.query_pairs_mut()
             .append_pair("code", &self.code)
             .append_pair("state", &self.state)
-            .append_pair("expires_in", &self.expires_in.to_string());
+            .append_pair("expires_in", &self.expires_in.to_string())
+            .append_pair("iss", &self.iss);
         (StatusCode::FOUND, [(header::LOCATION, url.as_str())]).into_response()
     }
 }
