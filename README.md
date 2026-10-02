@@ -17,6 +17,8 @@ A [rfc-editor](https://www.rfc-editor.org/) like specification manager, split in
 - [`spec-editor`](spec-editor) (TODO): a client for editing the specs, which calls the spec-provider to save them.
 - [`spec-viewer`](spec-viewer) (TODO): a client for viewing the specs, which calls the spec-provider to read them.
 
+The services are tested together by [`e2e-tests`](e2e-tests), black-box tests against the running stacks.
+
 ## Implemented OAuth concepts
 
 - **Authorization Code flow with PKCE** is the only flow, as in OAuth 2.1 (no implicit or password grants).
