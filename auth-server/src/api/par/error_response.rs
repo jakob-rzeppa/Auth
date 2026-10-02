@@ -8,22 +8,22 @@ pub enum AuthorizePushErrorResponse {
     InvalidRequestBody,
 
     #[status_code(axum::http::StatusCode::BAD_REQUEST)]
-    #[error("invalid_client_id")]
+    #[error("invalid_request")]
     #[description("The client_id parameter is missing or invalid.")]
     InvalidClientId,
 
-    #[status_code(axum::http::StatusCode::NOT_FOUND)]
-    #[error("client_not_found")]
+    #[status_code(axum::http::StatusCode::UNAUTHORIZED)]
+    #[error("invalid_client")]
     #[description("The client was not found.")]
     ClientNotFound,
 
     #[status_code(axum::http::StatusCode::BAD_REQUEST)]
-    #[error("invalid_redirect_uri")]
+    #[error("invalid_request")]
     #[description("The redirect_uri parameter is missing or invalid.")]
     InvalidRedirectUri,
 
     #[status_code(axum::http::StatusCode::BAD_REQUEST)]
-    #[error("invalid_response_type")]
+    #[error("unsupported_response_type")]
     #[description("The response_type parameter is missing or invalid.")]
     InvalidResponseType,
 
@@ -33,27 +33,27 @@ pub enum AuthorizePushErrorResponse {
     InvalidScope,
 
     #[status_code(axum::http::StatusCode::BAD_REQUEST)]
-    #[error("invalid_state")]
+    #[error("invalid_request")]
     #[description("The state parameter is missing or invalid.")]
     InvalidState,
 
     #[status_code(axum::http::StatusCode::BAD_REQUEST)]
-    #[error("invalid_code_challenge_method")]
+    #[error("invalid_request")]
     #[description("The code_challenge_method parameter is missing or invalid.")]
     InvalidCodeChallengeMethod,
 
     #[status_code(axum::http::StatusCode::BAD_REQUEST)]
-    #[error("invalid_code_challenge")]
+    #[error("invalid_request")]
     #[description("The code_challenge parameter is missing or invalid.")]
     InvalidCodeChallenge,
 
     #[status_code(axum::http::StatusCode::INTERNAL_SERVER_ERROR)]
-    #[error("database_error")]
+    #[error("server_error")]
     #[description("A database error occurred.")]
     DatabaseError,
 
     #[status_code(axum::http::StatusCode::INTERNAL_SERVER_ERROR)]
-    #[error("internal_server_error")]
+    #[error("server_error")]
     #[description("An internal server error occurred.")]
     InternalServerError,
 }
