@@ -5,10 +5,14 @@
 mod api_error_response;
 mod api_request;
 mod api_response;
+mod headers;
 
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use syn::{Error, Expr, ItemEnum, ItemStruct};
+
+use api_response::ApiResponseArgs;
+use headers::Headers;
 
 /// Generates an [`axum::response::IntoResponse`] implementation for an error enum.
 ///
@@ -28,18 +32,35 @@ use syn::{Error, Expr, ItemEnum, ItemStruct};
 /// ```
 ///
 /// The response body is `{"error": <code>, "error_description": <description>}`.
+///
+/// The macro optionally takes `headers(<name> => <value>, ..)`, which adds the given
+/// headers to the response of every variant. Each name is a
+/// [`axum::http::HeaderName`] expression and each value anything convertible into an
+/// [`axum::http::HeaderValue`].
+///
+/// ```ignore
+/// #[ApiErrorResponse(headers(axum::http::header::CACHE_CONTROL => "no-store"))]
+/// pub enum CreateUserErrorResponse { /* .. */ }
+/// ```
 #[proc_macro_attribute]
 pub fn ApiErrorResponse(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let attr = TokenStream2::from(attr);
-    if !attr.is_empty() {
-        return Error::new_spanned(attr, "`ApiErrorResponse` does not take any arguments")
-            .to_compile_error()
-            .into();
-    }
+    let headers = if attr.is_empty() {
+        Headers::default()
+    } else {
+        let attr = TokenStream2::from(attr);
+        match syn::parse2::<Headers>(attr.clone()) {
+            Ok(headers) => headers,
+            Err(_) => {
+                return Error::new_spanned(attr, "`ApiErrorResponse` only accepts `headers(..)`")
+                    .to_compile_error()
+                    .into();
+            }
+        }
+    };
 
     let item = syn::parse_macro_input!(item as ItemEnum);
 
-    match api_error_response::expand(item) {
+    match api_error_response::expand(headers, item) {
         Ok(tokens) => tokens.into(),
         Err(err) => err.to_compile_error().into(),
     }
@@ -48,13 +69,24 @@ pub fn ApiErrorResponse(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// Generates an [`axum::response::IntoResponse`] implementation for a success response
 /// struct and derives [`serde::Serialize`] on it.
 ///
-/// The macro takes a single argument: the [`axum::http::StatusCode`] expression the
-/// response should carry. The struct is serialised into the JSON body.
+/// The first argument is the [`axum::http::StatusCode`] expression the response should
+/// carry. The struct is serialised into the JSON body. It may be followed by
+/// `headers(<name> => <value>, ..)` to add response headers; each name is a
+/// [`axum::http::HeaderName`] expression and each value anything convertible into an
+/// [`axum::http::HeaderValue`].
 ///
 /// ```ignore
 /// #[ApiResponse(axum::http::StatusCode::CREATED)]
 /// pub struct CreateUserResponse {
 ///     pub id: String,
+/// }
+///
+/// #[ApiResponse(
+///     axum::http::StatusCode::OK,
+///     headers(axum::http::header::CACHE_CONTROL => "no-store")
+/// )]
+/// pub struct TokenResponse {
+///     pub access_token: String,
 /// }
 /// ```
 #[proc_macro_attribute]
@@ -68,10 +100,10 @@ pub fn ApiResponse(attr: TokenStream, item: TokenStream) -> TokenStream {
         .into();
     }
 
-    let status = syn::parse_macro_input!(attr as Expr);
+    let args = syn::parse_macro_input!(attr as ApiResponseArgs);
     let item = syn::parse_macro_input!(item as ItemStruct);
 
-    match api_response::expand(status, item) {
+    match api_response::expand(args, item) {
         Ok(tokens) => tokens.into(),
         Err(err) => err.to_compile_error().into(),
     }

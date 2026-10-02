@@ -44,3 +44,54 @@ async fn works_with_generics() {
     assert_eq!(status, StatusCode::OK);
     assert_eq!(body, r#"{"data":["a","b"]}"#);
 }
+
+#[ApiResponse(StatusCode::CREATED, headers(axum::http::header::CACHE_CONTROL => "no-store"))]
+pub struct CachedResponse {
+    pub id: String,
+}
+
+#[ApiResponse(
+    StatusCode::OK,
+    headers(
+        axum::http::header::CACHE_CONTROL => "no-store",
+        axum::http::header::PRAGMA => "no-cache",
+    )
+)]
+pub struct MultiHeaderResponse<T: serde::Serialize> {
+    pub data: Vec<T>,
+}
+
+#[tokio::test]
+async fn sets_the_given_header() {
+    let response = CachedResponse {
+        id: "abc".to_string(),
+    }
+    .into_response();
+
+    assert_eq!(response.status(), StatusCode::CREATED);
+    assert_eq!(response.headers()["cache-control"], "no-store");
+    assert_eq!(response.headers()["content-type"], "application/json");
+    let bytes = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
+    assert_eq!(&bytes[..], br#"{"id":"abc"}"#);
+}
+
+#[tokio::test]
+async fn sets_multiple_headers_and_works_with_generics() {
+    let response = MultiHeaderResponse { data: vec![1, 2] }.into_response();
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.headers()["cache-control"], "no-store");
+    assert_eq!(response.headers()["pragma"], "no-cache");
+}
+
+#[tokio::test]
+async fn sets_no_extra_headers_when_the_argument_is_omitted() {
+    let response = CreateUserResponse {
+        id: "abc".to_string(),
+    }
+    .into_response();
+
+    assert!(response.headers().get("cache-control").is_none());
+}

@@ -82,3 +82,37 @@ async fn status_code_expression_is_honoured() {
 
     assert_eq!(status, StatusCode::INTERNAL_SERVER_ERROR);
 }
+
+#[ApiErrorResponse(headers(
+    axum::http::header::CACHE_CONTROL => "no-store",
+    axum::http::header::PRAGMA => "no-cache",
+))]
+pub enum CachedErrorResponse<T: std::fmt::Display> {
+    #[status_code(axum::http::StatusCode::BAD_REQUEST)]
+    #[error("invalid_request")]
+    #[description("Invalid request body.")]
+    InvalidBody,
+
+    #[status_code(axum::http::StatusCode::CONFLICT)]
+    #[error("conflict_{0}")]
+    #[description("Conflict on {0}.")]
+    Conflict(T),
+}
+
+#[tokio::test]
+async fn error_responses_carry_the_given_headers() {
+    let response = CachedErrorResponse::<String>::InvalidBody.into_response();
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    assert_eq!(response.headers()["cache-control"], "no-store");
+    assert_eq!(response.headers()["pragma"], "no-cache");
+
+    let response = CachedErrorResponse::Conflict("x").into_response();
+    assert_eq!(response.status(), StatusCode::CONFLICT);
+    assert_eq!(response.headers()["cache-control"], "no-store");
+}
+
+#[tokio::test]
+async fn error_responses_have_no_cache_header_when_the_argument_is_omitted() {
+    let response = TestErrorResponse::InvalidBody.into_response();
+    assert!(response.headers().get("cache-control").is_none());
+}

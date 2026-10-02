@@ -7,9 +7,11 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{Error, ItemEnum};
 
+use crate::headers::Headers;
+
 /// Re-emits the enum without its helper attributes and appends the generated
 /// `IntoResponse` implementation.
-pub fn expand(mut item: ItemEnum) -> Result<TokenStream, Error> {
+pub fn expand(headers: Headers, mut item: ItemEnum) -> Result<TokenStream, Error> {
     let mut errors: Option<Error> = None;
     let mut arms = Vec::with_capacity(item.variants.len());
 
@@ -33,6 +35,11 @@ pub fn expand(mut item: ItemEnum) -> Result<TokenStream, Error> {
     let ident = &item.ident;
     let (impl_generics, ty_generics, where_clause) = item.generics.split_for_impl();
 
+    let response = match headers.to_tokens() {
+        Some(headers) => quote! { (status, #headers, body) },
+        None => quote! { (status, body) },
+    };
+
     Ok(quote! {
         #item
 
@@ -50,7 +57,7 @@ pub fn expand(mut item: ItemEnum) -> Result<TokenStream, Error> {
                     "error": error_code,
                     "error_description": error_description,
                 }));
-                axum::response::IntoResponse::into_response((status, body))
+                axum::response::IntoResponse::into_response(#response)
             }
         }
     })
