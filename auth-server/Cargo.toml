@@ -25,3 +25,6 @@ redis = { version = "1.7.0", features = ["tokio-comp"] }
 rand = "0.10.3"
 sha2 = "0.11.0"
 sqlx = { version = "0.9.0", features = ["postgres", "runtime-tokio", "macros", "uuid", "chrono", "sqlx-toml"] }
+
+[dev-dependencies]
+tower = { version = "0.5.3", features = ["util"] }
