@@ -1,6 +1,6 @@
 use api_macros::ApiErrorResponse;
 
-#[ApiErrorResponse(headers(axum::http::header::CACHE_CONTROL => "no-store"))]
+#[ApiErrorResponse]
 pub enum TokenErrorResponse {
     #[status_code(axum::http::StatusCode::BAD_REQUEST)]
     #[error("invalid_request")]

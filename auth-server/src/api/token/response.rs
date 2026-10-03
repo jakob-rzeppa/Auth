@@ -1,7 +1,7 @@
 use api_macros::ApiResponse;
-use axum::http::{StatusCode, header};
+use axum::http::StatusCode;
 
-#[ApiResponse(StatusCode::CREATED, headers(header::CACHE_CONTROL => "no-store"))]
+#[ApiResponse(StatusCode::CREATED)]
 pub struct TokenResponse {
     pub access_token: String,
     pub token_type: String,
