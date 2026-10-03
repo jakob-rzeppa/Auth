@@ -144,7 +144,9 @@ impl AuthorizeSubmitRedirectErrorResponse {
     fn code(&self) -> &'static str {
         match self {
             AuthorizeSubmitRedirectErrorResponse::InvalidCodeChallenge => "invalid_request",
-            AuthorizeSubmitRedirectErrorResponse::UnsupportedResponseType => "invalid_request",
+            AuthorizeSubmitRedirectErrorResponse::UnsupportedResponseType => {
+                "unsupported_response_type"
+            }
             AuthorizeSubmitRedirectErrorResponse::InvalidScope => "invalid_scope",
             AuthorizeSubmitRedirectErrorResponse::ServerError => "server_error",
             AuthorizeSubmitRedirectErrorResponse::AccessDenied => "access_denied",
