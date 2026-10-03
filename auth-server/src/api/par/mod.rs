@@ -124,7 +124,7 @@ mod tests {
             response_type: "code".to_string(),
             scope: "read write".to_string(),
             state: "some-state".to_string(),
-            code_challenge: "some-code-challenge".to_string(),
+            code_challenge: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM".to_string(),
             code_challenge_method: "S256".to_string(),
         }
     }

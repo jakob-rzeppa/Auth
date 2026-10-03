@@ -136,7 +136,7 @@ mod tests {
             "code".to_string(),
             scope.to_string(),
             "some-state".to_string(),
-            "some-code-challenge".to_string(),
+            "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM".to_string(),
             "S256".to_string(),
         )
     }
@@ -173,7 +173,7 @@ mod tests {
                 code.code() == "test-code"
                     && code.client_id() == &client_id
                     && code.scope() == "read write"
-                    && code.code_challenge() == "some-code-challenge"
+                    && code.code_challenge() == "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
                     && code.code_challenge_method() == "S256"
                     && *ttl_seconds == CODE_TTL_SECONDS
             })

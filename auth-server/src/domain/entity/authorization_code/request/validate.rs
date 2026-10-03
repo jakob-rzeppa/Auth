@@ -88,7 +88,7 @@ impl AuthorizationRequest {
         }
 
         // === code_challenge ====
-        if self.code_challenge().is_empty() {
+        if !is_valid_s256_code_challenge(self.code_challenge()) {
             return Err(ValidationError::redirectable(
                 RedirectableValidationError::InvalidCodeChallenge,
                 self.redirect_uri().to_string(),
@@ -98,6 +98,15 @@ impl AuthorizationRequest {
 
         Ok(())
     }
+}
+
+/// An S256 code challenge is the base64url encoding (without padding) of a SHA-256 hash,
+/// so it is always exactly 43 characters from the base64url alphabet (RFC 7636 §4.2).
+fn is_valid_s256_code_challenge(code_challenge: &str) -> bool {
+    code_challenge.len() == 43
+        && code_challenge
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-' || byte == b'_')
 }
 
 #[derive(Debug, PartialEq)]
@@ -166,7 +175,7 @@ mod tests {
             "code".to_string(),
             "read".to_string(),
             "some-state".to_string(),
-            "some-code-challenge".to_string(),
+            "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM".to_string(),
             "S256".to_string(),
         )
     }
@@ -203,7 +212,7 @@ mod tests {
             "token".to_string(),
             "read".to_string(),
             "some-state".to_string(),
-            "some-code-challenge".to_string(),
+            "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM".to_string(),
             "S256".to_string(),
         );
 
@@ -227,7 +236,7 @@ mod tests {
             "code".to_string(),
             "read".to_string(),
             "some-state".to_string(),
-            "some-code-challenge".to_string(),
+            "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM".to_string(),
             "S256".to_string(),
         );
 
@@ -249,7 +258,7 @@ mod tests {
             "code".to_string(),
             "delete".to_string(),
             "some-state".to_string(),
-            "some-code-challenge".to_string(),
+            "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM".to_string(),
             "S256".to_string(),
         );
 
@@ -273,7 +282,7 @@ mod tests {
             "code".to_string(),
             "read".to_string(),
             "".to_string(),
-            "some-code-challenge".to_string(),
+            "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM".to_string(),
             "S256".to_string(),
         );
 
@@ -293,7 +302,7 @@ mod tests {
             "code".to_string(),
             "read".to_string(),
             "some-state".to_string(),
-            "some-code-challenge".to_string(),
+            "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM".to_string(),
             "plain".to_string(),
         );
 
@@ -329,5 +338,75 @@ mod tests {
                 "some-state".to_string(),
             ))
         );
+    }
+
+    #[test]
+    fn rejects_code_challenge_with_wrong_length() {
+        let client_id = Uuid::new_v4();
+        let client = make_client(client_id);
+
+        for code_challenge in [
+            // 42 characters
+            "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-c",
+            // 44 characters
+            "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cMx",
+        ] {
+            let request = AuthorizationRequest::new(
+                client_id,
+                "https://example.com/callback".to_string(),
+                "code".to_string(),
+                "read".to_string(),
+                "some-state".to_string(),
+                code_challenge.to_string(),
+                "S256".to_string(),
+            );
+
+            assert_eq!(
+                request.validate_against_client(&client),
+                Err(ValidationError::redirectable(
+                    RedirectableValidationError::InvalidCodeChallenge,
+                    "https://example.com/callback".to_string(),
+                    "some-state".to_string(),
+                )),
+                "code_challenge: {code_challenge}"
+            );
+        }
+    }
+
+    #[test]
+    fn rejects_code_challenge_with_non_base64url_characters() {
+        let client_id = Uuid::new_v4();
+        let client = make_client(client_id);
+
+        for code_challenge in [
+            // padding
+            "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-c=",
+            // standard base64 alphabet
+            "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw+cM",
+            "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw/cM",
+            // allowed in a code_verifier, but not in an S256 challenge
+            "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw.cM",
+            "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw~cM",
+        ] {
+            let request = AuthorizationRequest::new(
+                client_id,
+                "https://example.com/callback".to_string(),
+                "code".to_string(),
+                "read".to_string(),
+                "some-state".to_string(),
+                code_challenge.to_string(),
+                "S256".to_string(),
+            );
+
+            assert_eq!(
+                request.validate_against_client(&client),
+                Err(ValidationError::redirectable(
+                    RedirectableValidationError::InvalidCodeChallenge,
+                    "https://example.com/callback".to_string(),
+                    "some-state".to_string(),
+                )),
+                "code_challenge: {code_challenge}"
+            );
+        }
     }
 }
