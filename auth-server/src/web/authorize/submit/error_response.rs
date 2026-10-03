@@ -5,8 +5,11 @@ use axum::{
 };
 use url::Url;
 
-use crate::domain::entity::authorization_code::request::validate::{
-    FatalValidationError, RedirectableValidationError, ValidationError,
+use crate::{
+    config::iss,
+    domain::entity::authorization_code::request::validate::{
+        FatalValidationError, RedirectableValidationError, ValidationError,
+    },
 };
 
 pub enum AuthorizeSubmitRedirectErrorResponse {
@@ -178,7 +181,8 @@ impl IntoResponse for AuthorizeSubmitErrorResponse {
                 url.query_pairs_mut()
                     .append_pair("error", error.code())
                     .append_pair("error_description", error.description())
-                    .append_pair("state", &state);
+                    .append_pair("state", &state)
+                    .append_pair("iss", iss());
                 Redirect::to(&url.to_string()).into_response()
             }
         }
