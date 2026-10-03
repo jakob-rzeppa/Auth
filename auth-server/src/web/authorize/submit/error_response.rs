@@ -162,7 +162,7 @@ impl AuthorizeSubmitRedirectErrorResponse {
                 "The response type is unsupported."
             }
             AuthorizeSubmitRedirectErrorResponse::InvalidScope => "The scope is invalid.",
-            AuthorizeSubmitRedirectErrorResponse::ServerError => "A unexpected error occured.",
+            AuthorizeSubmitRedirectErrorResponse::ServerError => "An unexpected error occurred.",
             AuthorizeSubmitRedirectErrorResponse::AccessDenied => "The user denied the request.",
         }
     }
