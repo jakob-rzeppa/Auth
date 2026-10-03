@@ -14,6 +14,7 @@ pub enum AuthorizeSubmitRedirectErrorResponse {
     UnsupportedResponseType,
     InvalidScope,
     ServerError,
+    AccessDenied,
 }
 
 pub enum AuthorizeSubmitPageErrorResponse {
@@ -143,6 +144,7 @@ impl AuthorizeSubmitRedirectErrorResponse {
             AuthorizeSubmitRedirectErrorResponse::UnsupportedResponseType => "invalid_request",
             AuthorizeSubmitRedirectErrorResponse::InvalidScope => "invalid_scope",
             AuthorizeSubmitRedirectErrorResponse::ServerError => "server_error",
+            AuthorizeSubmitRedirectErrorResponse::AccessDenied => "access_denied",
         }
     }
 
@@ -156,6 +158,7 @@ impl AuthorizeSubmitRedirectErrorResponse {
             }
             AuthorizeSubmitRedirectErrorResponse::InvalidScope => "The scope is invalid.",
             AuthorizeSubmitRedirectErrorResponse::ServerError => "A unexpected error occured.",
+            AuthorizeSubmitRedirectErrorResponse::AccessDenied => "The user denied the request.",
         }
     }
 }

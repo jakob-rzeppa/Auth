@@ -11,7 +11,7 @@ The auth server implements OAuth 2.1 (draft). In some cases it deviates from the
 
 ## Pushed Authorization Requests (PAR)
 
-The server implements the PAR endpoint as specified in [RFC 9126](https://datatracker.ietf.org/doc/html/rfc9126). Since PARs are more secure than sending the request parameters in the authorization request, the server requires clients to use PARs for authorization requests (not really OAuth conformant).
+The server implements the PAR endpoint as specified in [RFC 9126](https://datatracker.ietf.org/doc/html/rfc9126). Since PARs are more secure than sending the request parameters in the authorization request, the server requires clients to use PARs for authorization requests.
 
 Also the `/par` endpoint takes a JSON body instead of the required `application/x-www-form-urlencoded` body, which is not RFC 9126 conformant.
 

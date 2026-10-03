@@ -12,7 +12,7 @@ pub enum TakeParError {
 
 /// Atomically read and delete a pushed authorization request by its `request_uri`, enforcing one-time use.
 /// Returns `None` if the PAR does not exist or has expired.
-#[fnmock::fakeable]
+#[fnmock::mockable]
 pub async fn take_par(request_uri: &str) -> Result<Option<AuthorizationRequest>, TakeParError> {
     let mut conn = get_redis_connection()
         .await

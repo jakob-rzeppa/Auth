@@ -8,6 +8,7 @@ use crate::web::authorize::submit::error_response::AuthorizeSubmitPageErrorRespo
 pub struct AuthorizeSubmitRequest {
     pub request_uri: String,
     pub client_id: Uuid,
+    pub decision: bool,
 }
 
 impl<S: Send + Sync> FromRequest<S> for AuthorizeSubmitRequest {

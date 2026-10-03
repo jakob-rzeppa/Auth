@@ -12,7 +12,8 @@
         <input type="hidden" name="client_id" value="{{ client_id }}">
         <input type="hidden" name="request_uri" value="{{ request_uri }}">
 
-        <button type="submit">Authorize</button>
+        <button type="submit" name="decision" value="true">Authorize</button>
+        <button type="submit" name="decision" value="false">Deny</button>
     </form>
 </body>
 </html>
