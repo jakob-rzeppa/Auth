@@ -1,7 +1,7 @@
 use askama::Template;
 use axum::{
-    http::{StatusCode, header},
-    response::{Html, IntoResponse, Response},
+    http::StatusCode,
+    response::{Html, IntoResponse, Redirect, Response},
 };
 use url::Url;
 
@@ -179,7 +179,7 @@ impl IntoResponse for AuthorizeSubmitErrorResponse {
                     .append_pair("error", error.code())
                     .append_pair("error_description", error.description())
                     .append_pair("state", &state);
-                (StatusCode::FOUND, [(header::LOCATION, url.as_str())]).into_response()
+                Redirect::to(&url.to_string()).into_response()
             }
         }
     }
